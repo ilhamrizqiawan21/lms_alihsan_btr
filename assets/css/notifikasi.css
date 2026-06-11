@@ -1,0 +1,39 @@
+.topbar-notif-btn {
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    transition: all 0.2s;
+}
+.topbar-notif-btn:hover {
+    background: rgba(255,255,255,0.25);
+}
+.notif-dropdown {
+    animation: fadeInDown 0.2s ease;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.notif-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.notif-item:hover {
+    background: #f9fafb;
+}
+.notif-item.unread {
+    background: #eff6ff;
+}
+.notif-item .notif-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: black;
+}
+.notif-item .notif-time {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 4px;
+}

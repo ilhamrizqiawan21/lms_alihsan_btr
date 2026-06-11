@@ -1,0 +1,61 @@
+lms_alihsan_btr/
+│
+├── index.php                     # Login multi-role
+├── config.php                    # Koneksi DB & session
+├── logout.php
+├── style.css                     # Styling lengkap (sidebar, login, dll)
+│
+├── assets/
+│   └── images/
+│       ├── logo-sekolah.png
+│       └── favicon.png
+│
+├── includes/
+│   ├── header.php                # Sidebar dinamis (berdasarkan role)
+│   ├── footer.php
+│   └── fungsi.php                # Helper: tgl_indonesia, cek_login, dll
+│
+├── uploads/
+│   ├── materi/                   # File materi guru
+│   └── tugas_siswa/              # File tugas siswa
+│
+├── ajax/
+│   ├── get_messages.php
+│   └── send_message.php
+│
+├── admin/                        # Role: ADMIN (id=1)
+│   ├── dashboard.php             # Ringkasan semua menu
+│   ├── rekap_absensi.php         # Rekap absensi (export HTML/Excel)
+│   ├── rekap_tugas.php           # Rekap tugas semua kelas/mapel
+│   ├── rekap_nilai.php           # Rekap nilai (export HTML/Excel)
+│   ├── rekap_sikap.php           # Rekap nilai sikap (export HTML/Excel)
+│   ├── kelas_siswa.php           # Input kelas & siswa baru
+│   ├── user_management.php       # Kelola user (guru, siswa, kepsek)
+│   └── pengaturan.php            # Warna tema, tahun ajaran aktif, semester
+│
+├── guru/                         # Role: GURU (id=2)
+│   ├── dashboard.php
+│   ├── materi.php                # CRUD materi per kelas_mapel
+│   ├── tugas.php                 # Buat tugas, nilai, lihat pengumpulan siswa
+│   ├── absensi.php               # Input absensi per kelas_mapel & tanggal
+│   ├── rekap_nilai.php           # Olah nilai STS, SAS asli/jadi, SAT asli/jadi
+│   ├── sikap.php                 # Input nilai spiritual & sosial
+│   ├── rekap_sikap.php           # Rekap nilai sikap per kelas
+│   ├── chat.php                  # Chat dengan siswa di kelas yang diampu
+│   └── profil.php                # Ubah nama & password
+│
+├── siswa/                        # Role: SISWA (id=3)
+│   ├── dashboard.php
+│   ├── materi_saya.php           # Lihat materi berdasarkan kelas
+│   ├── tugas_saya.php            # Daftar tugas, upload, edit, hapus
+│   ├── nilai_saya.php
+│   ├── chat.php
+│   └── profil.php                # Ganti password
+│
+└── kepsek/                       # Role: KEPALA SEKOLAH (id=4)
+    ├── dashboard.php
+    ├── rekap_absensi.php
+    ├── rekap_nilai.php
+    ├── rekap_tugas.php
+    ├── rekap_sikap.php
+    └── laporan.php               # Export semua rekap (HTML/Excel)
