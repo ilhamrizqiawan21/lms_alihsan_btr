@@ -1,122 +1,108 @@
-# LMS Al-Ihsan Batujajar
+# 📚 LMS MTs AL-IHSAN BATUJAJAR
 
-## Description / Deskripsi
-
-**English:**
-LMS Al-Ihsan Batujajar is a Learning Management System specifically designed for MTs. Al-Ihsan Batujajar school. This platform provides comprehensive tools for online teaching and learning, course management, student progress tracking, and interactive educational content delivery.
-
-**Indonesia:**
-LMS Al-Ihsan Batujajar adalah Learning Management System yang dirancang khusus untuk sekolah MTs. Al-Ihsan Batujajar. Platform ini menyediakan alat komprehensif untuk pengajaran dan pembelajaran online, manajemen kursus, pelacakan progres siswa, dan penyampaian konten pendidikan interaktif.
+Learning Management System (LMS) khusus dikembangkan untuk **MTs Al-Ihsan Batujajar**. Platform ini dirancang untuk memfasilitasi kegiatan belajar mengajar secara digital, mulai dari pengelolaan data akademik, absensi, tugas, hingga pelaporan nilai secara otomatis.
 
 ---
 
-## Installation / Instalasi
+## 🚀 Fitur Utama
 
-### Requirements / Persyaratan:
-- PHP (v7.4 or higher / v7.4 atau lebih tinggi)
-- Composer
-- MySQL atau PostgreSQL
-- Laravel Framework
-- Node.js (untuk asset compilation / kompilasi aset)
+### 👥 Multi-Role Access Control (RBAC)
+Sistem memiliki 4 level akses dengan dashboard dan fitur yang dipersonalisasi:
+*   **Administrator**: Manajemen user, mata pelajaran, kelas, tahun ajaran, pengumuman, dan pengaturan sistem.
+*   **Guru**: Mengelola absensi siswa, materi pembelajaran, tugas/kuis, penilaian (Sumatif, STS, SAS, SAT), serta chat dengan siswa.
+*   **Siswa**: Mengakses materi, mengumpulkan tugas, melihat nilai secara real-time, dan berkomunikasi dengan guru.
+*   **Kepala Sekolah**: Memantau laporan akademik, rekap absensi, dan statistik perkembangan sekolah secara keseluruhan.
 
-### Steps / Langkah-langkah:
+### 📊 Manajemen Akademik & Penilaian
+*   **Olah Nilai Otomatis**: Perhitungan nilai rata-rata akhir secara otomatis berdasarkan bobot Sumatif dan Asesmen Semester.
+*   **Absensi Digital**: Pencatatan kehadiran siswa per mata pelajaran dengan status Hadir, Sakit, Izin, dan Alpha.
+*   **Sikap Sosial**: Penilaian karakter siswa (Empati, Kerjasama, Toleransi, dll) dengan skala 1-5.
+*   **Materi & Tugas**: Upload materi (PDF) dan pengumpulan tugas secara online dengan fitur deadline.
 
-**English:**
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ilhamrizqiawan21/lms_alihsan_btr.git
-   cd lms_alihsan_btr
-   ```
+### 📈 Pelaporan & Export
+*   **Cetak Laporan**: Fitur cetak (print-friendly) untuk absensi, nilai, dan sikap.
+*   **Export Excel**: Integrasi dengan `PHPSpreadsheet` untuk mendownload data dalam format `.xlsx`.
 
-2. Install dependencies:
-   ```bash
-   composer install
-   npm install
-   ```
-
-3. Setup environment file:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-4. Configure database and run migrations:
-   ```bash
-   php artisan migrate
-   ```
-
-5. Compile front-end assets:
-   ```bash
-   npm run dev
-   ```
-
-6. Start the application:
-   ```bash
-   php artisan serve
-   ```
-
-**Indonesia:**
-1. Clone repository:
-   ```bash
-   git clone https://github.com/ilhamrizqiawan21/lms_alihsan_btr.git
-   cd lms_alihsan_btr
-   ```
-
-2. Install dependencies:
-   ```bash
-   composer install
-   npm install
-   ```
-
-3. Setup file environment:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-4. Konfigurasi database dan jalankan migrasi:
-   ```bash
-   php artisan migrate
-   ```
-
-5. Kompilasi aset front-end:
-   ```bash
-   npm run dev
-   ```
-
-6. Jalankan aplikasi:
-   ```bash
-   php artisan serve
-   ```
+### 🛡️ Keamanan & Integritas Data
+*   **Prepared Statements**: Melindungi dari SQL Injection.
+*   **Password Hashing**: Menggunakan `bcrypt` (dengan fitur auto-upgrade dari MD5).
+*   **CSRF Protection**: Token keamanan pada setiap form input.
+*   **Audit Log**: Pencatatan aktivitas login pengguna (IP & User-Agent).
 
 ---
 
-## Usage / Penggunaan
+## 🛠️ Tech Stack
 
-### English:
-1. Access the platform at `http://localhost:8000`
-2. Login with your teacher or student account
-3. Browse available courses
-4. Enroll in courses you want to take
-5. Access course materials and lessons
-6. Submit assignments and participate in discussions
-7. View grades and learning progress
-8. Download certificates upon course completion
-
-### Indonesia:
-1. Akses platform di `http://localhost:8000`
-2. Login dengan akun guru atau siswa Anda
-3. Jelajahi kursus yang tersedia
-4. Daftar di kursus yang ingin Anda ikuti
-5. Akses materi kursus dan pelajaran
-6. Kirim tugas dan ikuti diskusi
-7. Lihat nilai dan progres pembelajaran
-8. Download sertifikat setelah menyelesaikan kursus
+*   **Backend**: PHP 7.4+ (Native Procedural)
+*   **Database**: MySQL (MariaDB)
+*   **Frontend**: HTML5, CSS3 (Custom Variables), JavaScript (Vanilla)
+*   **Dependencies**: Composer, PHPOffice/PHPSpreadsheet
+*   **Library Lain**: Chart.js (Grafik Dashboard), Font Awesome 6 (Ikon)
 
 ---
 
-## Author / Penulis
-Ilham Rizqiawan
+## 📋 Persyaratan Sistem
 
-## License / Lisensi
-This project is licensed under the MIT License - see the LICENSE file for details.
+*   PHP >= 7.4
+*   MySQL/MariaDB
+*   Composer (untuk dependensi)
+*   Web Server (Apache/Nginx/XAMPP)
+
+---
+
+## ⚙️ Instalasi
+
+1.  **Clone Repository**
+    ```bash
+    git clone https://github.com/username/lms_alihsan_btr.git
+    cd lms_alihsan_btr
+    ```
+
+2.  **Install Dependensi**
+    ```bash
+    composer install
+    ```
+
+3.  **Konfigurasi Database**
+    *   Buat database baru di MySQL (misal: `lms_alihsan_btr`).
+    *   Import file database terbaru (cari file `.sql` di root directory).
+
+4.  **Konfigurasi Aplikasi**
+    *   Buka file `config.php`.
+    *   Sesuaikan kredensial database (`$host`, `$user`, `$pass`, `$db`).
+    *   Atur `DEV_MODE` ke `true` jika dalam tahap pengembangan.
+
+5.  **Jalankan Server**
+    *   Gunakan XAMPP atau jalankan server lokal:
+    ```bash
+    php -S localhost:8000
+    ```
+
+---
+
+## 📂 Struktur Direktori
+
+```text
+├── admin/          # Modul Administrator
+├── guru/           # Modul Guru
+├── siswa/          # Modul Siswa
+├── kepsek/         # Modul Kepala Sekolah
+├── ajax/           # Endpoint untuk request asinkron
+├── assets/         # Resource statis (CSS, Images, JS)
+├── includes/       # Core logic (fungsi.php, config.php, header, footer)
+├── migrations/     # File migrasi database SQL
+├── uploads/        # Penyimpanan file materi & tugas siswa
+└── vendor/         # Dependensi Composer
+```
+
+---
+
+## 📝 Catatan Pengembangan
+
+*   Aplikasi ini menggunakan sistem **Generated Columns** pada MySQL untuk perhitungan nilai akhir, pastikan versi MySQL mendukung fitur ini.
+*   Folder `uploads/` harus memiliki izin akses (write permission) agar fitur upload file berfungsi.
+*   Gunakan `DEV_MODE = false` pada file `config.php` saat deployment ke server produksi untuk mengaktifkan logging error ke file dan menyembunyikan detail teknis dari pengguna.
+
+---
+
+**LMS MTs Al-Ihsan Batujajar** - *Meningkatkan Kualitas Pendidikan melalui Teknologi.*
