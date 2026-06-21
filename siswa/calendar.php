@@ -294,6 +294,35 @@ $currentMonth = date('n');
     color: #111827;
 }
 
+/* Event Visual Indicators (dots) */
+.calendar-cell.has-event {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.calendar-cell.holiday {
+    background: rgba(254, 226, 226, 0.6);
+    border-color: #fecaca;
+}
+.calendar-cell .event-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 6px;
+    min-height: 8px;
+}
+.calendar-cell .event-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
+}
+.calendar-cell .event-dot.holiday-dot {
+    width: 8px;
+    height: 8px;
+    background: #ef4444 !important;
+}
+
 @media (max-width: 980px) {
     .calendar-board { grid-template-columns: 1fr; }
 }
@@ -368,11 +397,11 @@ $currentMonth = date('n');
             </div>
                 <div class="modal-field" id="modalHolidayField" style="display:none;">
                     <label for="eventIsHoliday">Tandai sebagai Hari Libur</label>
-                    <input type="checkbox" id="eventIsHoliday" name="is_holiday" value="1"> Hari Libur
+                    <input type="checkbox" id="eventIsHoliday" value="1"> Hari Libur
                 </div>
                 <div class="modal-field" id="modalScopeField" style="display:none;">
                     <label for="eventScope">Scope Event</label>
-                    <select id="eventScope" name="scope">
+                    <select id="eventScope">
                         <option value="user">Pribadi</option>
                         <option value="school">Untuk Sekolah</option>
                     </select>
@@ -388,7 +417,8 @@ $currentMonth = date('n');
 <script>
 (function() {
     const userRole = <?= (int)$_SESSION['role_id'] ?>;
-    const canEdit = (userRole === 1 || userRole === 4);
+    const isAdmin = (userRole === 1 || userRole === 4);
+    const canEdit = (userRole !== 3); // Guru, Admin, Kepsek bisa input; Siswa hanya lihat
     const baseUrl = '<?= rtrim($base_url, '/') ?>';
     const today = new Date();
     let currentYear = <?= $currentYear ?>;
@@ -444,7 +474,7 @@ $currentMonth = date('n');
         const monthLabel = `${monthNames[month]} ${year}`;
         calendarMonthLabel.textContent = monthLabel;
         selectedDate = formatDate(new Date(year, month, 1));
-        fetch(`${baseUrl}/ajax/calendar_events.php?action=get&year=${year}&month=${month + 1}`)
+        fetch(`${baseUrl}/ajax/calendar_events?action=get&year=${year}&month=${month + 1}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
@@ -506,7 +536,7 @@ $currentMonth = date('n');
                 cell.classList.add('sunday');
             }
             // If any holiday event on this date, mark holiday
-            const hasHoliday = events.some(evt => evt.is_holiday == 1 || evt.scope === 'school');
+            const hasHoliday = events.some(evt => evt.is_holiday == 1);
             if (hasHoliday) {
                 cell.classList.add('holiday');
                 const badge = document.createElement('div');
@@ -572,9 +602,9 @@ $currentMonth = date('n');
             });
 
             eventList.querySelectorAll('button[data-action="delete"]').forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', async () => {
                     const eventId = button.dataset.id;
-                    if (!confirm('Hapus reminder ini?')) return;
+                    if (!await confirmModal('Hapus reminder ini?')) return;
                     deleteEvent(eventId);
                 });
             });
@@ -617,7 +647,7 @@ $currentMonth = date('n');
             formData.append('scope', scopeVal);
         }
 
-        fetch(`${baseUrl}/ajax/calendar_events.php`, {
+        fetch(`${baseUrl}/ajax/calendar_events`, {
             method: 'POST',
             body: formData
         })
@@ -641,7 +671,7 @@ $currentMonth = date('n');
         payload.append('action', 'delete');
         payload.append('event_id', id);
 
-        fetch(`${baseUrl}/ajax/calendar_events.php`, {
+        fetch(`${baseUrl}/ajax/calendar_events`, {
             method: 'POST',
             body: payload
         })

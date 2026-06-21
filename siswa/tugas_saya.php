@@ -188,7 +188,7 @@ include '../includes/header.php';
                                 </a>
                                 <a href="?hapus_pengumpulan=<?= $t['id'] ?>"
                                    class="btn btn-sm btn-danger"
-                                   onclick="return confirm('Yakin hapus pengumpulan ini?')">
+                                   data-confirm="Yakin hapus pengumpulan ini?">
                                     <i class="fas fa-trash"></i> Hapus
                                 </a>
                             <?php endif; ?>

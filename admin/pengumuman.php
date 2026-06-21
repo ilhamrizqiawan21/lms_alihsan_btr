@@ -35,6 +35,7 @@ $kelas_list = $kelas_res->fetch_all(MYSQLI_ASSOC);
 
 // ── Proses TAMBAH ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
+    csrf_verify();
 
     $judul  = trim($_POST['judul']  ?? '');
     $isi    = trim($_POST['isi']    ?? '');
@@ -153,7 +154,8 @@ include '../includes/header.php';
 <!-- ── Form Tambah ──────────────────────────────────────────────────────────── -->
 <div class="form-container">
     <div class="form-title">Tambah Pengumuman Baru</div>
-    <form method="POST">
+    <form method="POST"> 
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
         <div class="form-group">
             <label>Judul</label>
             <input type="text" name="judul" class="form-input" maxlength="200" required>
@@ -226,7 +228,7 @@ include '../includes/header.php';
                     <td>
                         <a href="?hapus=<?= $p['id'] ?>"
                            class="btn btn-sm btn-danger"
-                           onclick="return confirm('Hapus pengumuman ini?')">
+                           data-confirm="Hapus pengumuman ini?">
                             <i class="fas fa-trash"></i> Hapus
                         </a>
                     </td>

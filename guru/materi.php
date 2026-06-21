@@ -8,6 +8,10 @@ $semester_aktif = get_semester_aktif($conn);
 
 $kelas_mapel_options = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
 
+if (!$kelas_mapel_options || $kelas_mapel_options->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
+
 // ========== HAPUS MATERI ==========
 if (isset($_GET['hapus_materi'])) {
     $id = (int)$_GET['hapus_materi'];
@@ -264,7 +268,7 @@ include '../includes/header.php';
                     <td>
                         <a href="?hapus_materi=<?= $m['id'] ?>&filter_km=<?= $filter_km ?>"
                            class="btn btn-sm btn-danger"
-                           onclick="return confirm('Hapus materi ini?')">
+                           data-confirm="Hapus materi ini?">
                             <i class="fas fa-trash-alt"></i> Hapus
                         </a>
                     </td>

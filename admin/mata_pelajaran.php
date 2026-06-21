@@ -118,7 +118,7 @@ $mapel = $conn->query("SELECT * FROM mata_pelajaran ORDER BY urutan, id");
                                 <i class="fas fa-save"></i> Simpan
                             </button>
                             <a href="?hapus=<?= $m['id'] ?>" class="btn btn-sm btn-danger"
-                               onclick="return confirm('Hapus mata pelajaran <?= e($m['nama_mapel']) ?>?')">
+                               data-confirm="Hapus mata pelajaran <?= e($m['nama_mapel']) ?>?">
                                 <i class="fas fa-trash-alt"></i> Hapus
                             </a>
                         </td>

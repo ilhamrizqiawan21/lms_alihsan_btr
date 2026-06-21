@@ -6,23 +6,34 @@ include '../includes/header.php';
 
 $user_id = $_SESSION['user_id'];
 $siswa = mysqli_fetch_assoc(mysqli_query($conn, "SELECT s.kelas_id FROM siswa s WHERE s.user_id = $user_id"));
-$kelas_id = $siswa['kelas_id'];
+$kelas_id = $siswa['kelas_id'] ?? 0;
+
+if (!$kelas_id) {
+    set_flash('warning', 'Anda belum memiliki kelas. Hubungi administrator.');
+    header('Location: dashboard.php');
+    exit;
+}
+
 $tahun_aktif = get_tahun_ajaran_aktif($conn);
 $semester_aktif = get_semester_aktif($conn);
 
-// Ambil semua kelas_mapel yang ada di kelas siswa (guru mapel yang mengajar)
-$kelas_mapel_options = mysqli_query($conn, "SELECT km.id, mp.nama_mapel, u.nama_lengkap as nama_guru
+// Ambil daftar kelas_mapel yang tersedia untuk siswa (menggunakan prepared statement)
+$stmt = $conn->prepare("
+    SELECT km.id, mp.nama_mapel, u.nama_lengkap as nama_guru
     FROM kelas_mapel km
     JOIN mata_pelajaran mp ON km.mapel_id = mp.id
     JOIN users u ON km.guru_id = u.id
-    WHERE km.kelas_id = $kelas_id 
-    AND km.tahun_ajaran_id = (SELECT id FROM tahun_ajaran WHERE tahun='$tahun_aktif' AND is_active=1)
-    AND km.semester = '$semester_aktif'
-    ORDER BY mp.urutan");
+    JOIN tahun_ajaran ta ON km.tahun_ajaran_id = ta.id
+    WHERE km.kelas_id = ? AND ta.tahun = ? AND km.semester = ?
+    ORDER BY mp.urutan
+");
+$stmt->bind_param("iss", $kelas_id, $tahun_aktif, $semester_aktif);
+$stmt->execute();
+$kelas_mapel_options = $stmt->get_result();
 
 $selected_km = isset($_GET['kelas_mapel_id']) ? (int)$_GET['kelas_mapel_id'] : 0;
-// Validasi
 if ($selected_km) {
+    // Validasi bahwa selected_km memang milik kelas siswa
     $valid = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM kelas_mapel WHERE id=$selected_km AND kelas_id=$kelas_id"));
     if (!$valid) $selected_km = 0;
 }
@@ -42,6 +53,7 @@ if ($selected_km) {
 </style>
 
 <div class="page-header"><h2><i class="fas fa-comments"></i> Chat Kelas</h2></div>
+
 <div class="form-container">
     <form method="GET" class="form-row">
         <div class="form-group"><label>Pilih Mata Pelajaran / Guru</label>
@@ -54,6 +66,7 @@ if ($selected_km) {
         </div>
     </form>
 </div>
+
 <?php if($selected_km): ?>
 <div class="form-container">
     <div id="chatMessages" class="chat-container"><div style="text-align:center;">Memuat pesan...</div></div>
@@ -62,7 +75,9 @@ if ($selected_km) {
         <button id="sendBtn" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim</button>
     </div>
 </div>
+
 <script>
+const baseUrl = '<?= $base_url ?>';
 const kelasMapelId = <?= $selected_km ?>;
 const userId = <?= $user_id ?>;
 let lastMessageId = 0;
@@ -81,9 +96,13 @@ function formatDateLabel(dateStr) {
 }
 
 function loadMessages() {
-    fetch('../ajax/get_messages.php?kelas_mapel_id=' + kelasMapelId + '&last_id=' + lastMessageId)
+    fetch(baseUrl + 'ajax/get_messages.php?kelas_mapel_id=' + kelasMapelId + '&last_id=' + lastMessageId)
         .then(res => res.json())
         .then(data => {
+            if (data.error) {
+                console.error('Server error:', data.error);
+                return;
+            }
             if (data.messages && data.messages.length > 0) {
                 const container = document.getElementById('chatMessages');
                 if (container.children.length === 1 && container.children[0].innerText === 'Memuat pesan...') container.innerHTML = '';
@@ -112,14 +131,21 @@ function loadMessages() {
 function sendMessage() {
     const message = document.getElementById('messageInput').value.trim();
     if (!message) return;
-    fetch('../ajax/send_message.php', {
+    fetch(baseUrl + 'ajax/send_message.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `kelas_mapel_id=${kelasMapelId}&message=${encodeURIComponent(message)}`
-    }).then(() => {
-        document.getElementById('messageInput').value = '';
-        loadMessages();
-    }).catch(err => console.error('Send message error:', err));
+        body: 'kelas_mapel_id=' + kelasMapelId + '&message=' + encodeURIComponent(message) + '&csrf_token=' + encodeURIComponent('<?= csrf_token() ?>')
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('messageInput').value = '';
+            loadMessages();
+        } else {
+            alert('Gagal mengirim pesan: ' + data.message);
+        }
+    })
+    .catch(err => console.error('Send message error:', err));
 }
 
 function escapeHtml(str) {
@@ -143,4 +169,5 @@ setInterval(loadMessages, 3000);
 loadMessages();
 </script>
 <?php endif; ?>
-<?php include '../includes/footer.php'; 
+
+<?php include '../includes/footer.php'; ?>

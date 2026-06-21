@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_nilai'])) {
         }
         mysqli_query($conn, $query);
     }
-    echo "<script>alert('Nilai STS, SAS, SAT berhasil disimpan'); window.location.href='rekap_nilai.php?kelas_mapel_id=$kelas_mapel_id';</script>";
+    echo "<script>showToast('Nilai STS, SAS, SAT berhasil disimpan','success'); window.location.href='rekap_nilai.php?kelas_mapel_id=$kelas_mapel_id';</script>";
 }
 
 // Ambil data siswa dan nilai yang sudah ada
@@ -51,6 +51,11 @@ if ($kelas_mapel_id && $km_check) {
 }
 
 $kelas_mapel_options = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
+
+if (!$kelas_mapel_options || $kelas_mapel_options->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
+
 $kelas_id_for_export = $km_check ? $km_check['kelas_id'] : 0;
 ?>
 <div class="page-header"><h2><i class="fas fa-chart-line"></i> Rekap & Olah Nilai (STS, SAS, SAT)</h2></div>

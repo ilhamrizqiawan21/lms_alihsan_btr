@@ -21,7 +21,12 @@ include 'config.php';
 
 $migrations = [
     'migrations/001_add_siswa_status.sql',
-    'migrations/002_dashboard_widgets.sql'
+    'migrations/002_dashboard_widgets.sql',
+    'migrations/003_calendar_events.sql',
+    'migrations/004_alter_calendar_events.sql',
+    'migrations/005_archive_system_updates.sql',
+    'migrations/006_fix_user_integrity.sql',
+    'migrations/007_multiple_file_upload.sql'
 ];
 
 $output = [];

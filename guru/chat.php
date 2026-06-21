@@ -15,6 +15,10 @@ $km_check = mysqli_fetch_assoc(mysqli_query($conn, "SELECT km.*, k.nama_kelas, m
     WHERE km.id = $kelas_mapel_id AND km.guru_id = $guru_id"));
 
 $kelas_mapel_options = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
+
+if (!$kelas_mapel_options || $kelas_mapel_options->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
 ?>
 <style>
 .chat-container { height: 500px; overflow-y: auto; background: #f8fafc; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; }

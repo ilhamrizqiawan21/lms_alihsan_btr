@@ -139,6 +139,10 @@ if ($km_check && $ta_id) {
 
 $kelas_mapel_options = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
 
+if (!$kelas_mapel_options || $kelas_mapel_options->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
+
 // Label nilai
 $label_nilai = [1=>'TB', 2=>'KB', 3=>'C', 4=>'B', 5=>'SB'];
 ?>

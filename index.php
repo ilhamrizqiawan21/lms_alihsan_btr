@@ -1,4 +1,9 @@
 <?php
+// PAKSA TAMPILKAN ERROR
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include 'config.php';
 
 // Redirect jika sudah login
@@ -28,85 +33,94 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             $error = 'Terlalu banyak percobaan login. Silakan coba lagi nanti.';
         }
-        // Stop processing
     }
 
     // Continue only if no rate-limit error
     if (empty($error)) {
+        // DEBUG: Catat percobaan login
+        error_log("LOGIN DEBUG: Attempting login for user: " . $username . " | IP: " . $ip_address);
 
-    // ✅ AMAN: Prepared statement, tidak ada SQL Injection
-    $stmt = $conn->prepare(
-        "SELECT u.*, r.nama_role 
-         FROM users u 
-         JOIN roles r ON u.role_id = r.id 
-         WHERE u.username = ? AND u.is_active = 1 
-         LIMIT 1"
-    );
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
+        // ✅ AMAN: Prepared statement, tidak ada SQL Injection
+        $stmt = $conn->prepare(
+            "SELECT u.*, r.nama_role 
+             FROM users u 
+             JOIN roles r ON u.role_id = r.id 
+             WHERE u.username = ? AND u.is_active = 1 
+             LIMIT 1"
+        );
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        $stored_hash = $user['password'];
-        $password_valid = false;
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+            error_log("LOGIN DEBUG: User found. ID: " . $user['id'] . " | Role ID: " . $user['role_id']);
+            
+            $stored_hash = $user['password'];
+            $password_valid = false;
 
-        // Cek bcrypt (password_hash)
-        if (substr($stored_hash, 0, 4) === '$2y$') {
-            $password_valid = password_verify($password_input, $stored_hash);
-            // ✅ Upgrade MD5 lama ke bcrypt saat login berhasil (tidak ada di sini, sudah bcrypt)
-        }
-        // Cek MD5 lama — lalu upgrade ke bcrypt otomatis
-        elseif (strlen($stored_hash) == 32 && ctype_xdigit($stored_hash)) {
-            if (md5($password_input) === $stored_hash) {
-                $password_valid = true;
-                // ✅ Upgrade otomatis ke bcrypt
-                $new_hash = password_hash($password_input, PASSWORD_BCRYPT);
-                $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-                $upd->bind_param("si", $new_hash, $user['id']);
-                $upd->execute();
+            // Cek bcrypt (password_hash)
+            if (substr($stored_hash, 0, 4) === '$2y$') {
+                $password_valid = password_verify($password_input, $stored_hash);
             }
-        }
+            // Cek MD5 lama — lalu upgrade ke bcrypt otomatis
+            elseif (strlen($stored_hash) == 32 && ctype_xdigit($stored_hash)) {
+                if (md5($password_input) === $stored_hash) {
+                    $password_valid = true;
+                    // ✅ Upgrade otomatis ke bcrypt
+                    $new_hash = password_hash($password_input, PASSWORD_BCRYPT);
+                    $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                    $upd->bind_param("si", $new_hash, $user['id']);
+                    $upd->execute();
+                }
+            }
 
-        if ($password_valid) {
-            // Regenerasi session ID (cegah session fixation)
-            session_regenerate_id(true);
+            if ($password_valid) {
+                error_log("LOGIN DEBUG: Password valid for user: " . $username);
+                // Regenerasi session ID (cegah session fixation)
+                session_regenerate_id(true);
 
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['role_id'] = $user['role_id'];
-            $_SESSION['role']    = $user['nama_role'];
-            $_SESSION['nama']    = $user['nama_lengkap'];
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role_id'] = $user['role_id'];
+                $_SESSION['role']    = $user['nama_role'];
+                $_SESSION['nama']    = $user['nama_lengkap'];
+                
+                error_log("LOGIN DEBUG: Session set. Redirecting to role: " . $user['role_id']);
 
-            // ✅ Log login dengan prepared statement
-            $ip         = $_SERVER['REMOTE_ADDR'] ?? '';
-            $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-            $stmt_log = $conn->prepare(
-                "INSERT INTO log_login (user_id, username, nama_lengkap, role, ip_address, user_agent, login_time) 
-                 VALUES (?, ?, ?, ?, ?, ?, NOW())"
-            );
-            $stmt_log->bind_param(
-                "isssss",
-                $user['id'], $user['username'], $user['nama_lengkap'],
-                $user['nama_role'], $ip, $user_agent
-            );
-            $stmt_log->execute();
+                // ✅ Log login dengan prepared statement
+                $ip         = $_SERVER['REMOTE_ADDR'] ?? '';
+                $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+                $stmt_log = $conn->prepare(
+                    "INSERT INTO log_login (user_id, username, nama_lengkap, role, ip_address, user_agent, login_time) 
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())"
+                );
+                $stmt_log->bind_param(
+                    "isssss",
+                    $user['id'], $user['username'], $user['nama_lengkap'],
+                    $user['nama_role'], $ip, $user_agent
+                );
+                $stmt_log->execute();
 
-            // Record successful login attempt and clear blocks for IP
-            log_login_attempt($conn, $ip_address, $username, 1);
-            $conn->query("DELETE FROM blocked_ips WHERE ip_address = '" . $conn->real_escape_string($ip_address) . "'");
+                // Record successful login attempt and clear blocks for IP
+                log_login_attempt($conn, $ip_address, $username, 1);
+                $conn->query("DELETE FROM blocked_ips WHERE ip_address = '" . $conn->real_escape_string($ip_address) . "'");
 
-            // Redirect berdasarkan role
-            $redirect = [1 => 'admin/dashboard', 2 => 'guru/dashboard', 3 => 'siswa/dashboard', 4 => 'kepsek/dashboard'];
-            header('Location: ' . $base_url . ($redirect[$user['role_id']] ?? ''));
-            exit;
+                // Redirect berdasarkan role
+                $redirect = [1 => 'admin/dashboard', 2 => 'guru/dashboard', 3 => 'siswa/dashboard', 4 => 'kepsek/dashboard'];
+                $target = $base_url . ($redirect[$user['role_id']] ?? '');
+                error_log("LOGIN DEBUG: Redirecting to: " . $target);
+                header('Location: ' . $target);
+                exit;
+            } else {
+                error_log("LOGIN DEBUG: Password invalid for user: " . $username);
+                $error = 'Password salah!';
+            }
         } else {
-            $error = 'Password salah!';
+            error_log("LOGIN DEBUG: User not found or inactive: " . $username);
+            // Pesan generik — jangan bocorkan username valid/tidak
+            $error = 'Username atau password tidak valid!';
         }
-    } else {
-        // Pesan generik — jangan bocorkan username valid/tidak
-        $error = 'Username atau password tidak valid!';
     }
-}
 }
 ?>
 <!DOCTYPE html>

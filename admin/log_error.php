@@ -124,12 +124,12 @@ while ($row = $levels_res->fetch_assoc()) $levels[] = $row['error_level'];
             <input type="text" name="search" class="form-input" value="<?= htmlspecialchars($search) ?>" placeholder="...">
         </div>
         <div class="form-group" style="margin:0;">
-            <label><input type="checkbox" name="show_resolved" value="1" <?= $show_resolved ? 'checked' : ?>> Tampilkan resolved</label>
+            <label><input type="checkbox" name="show_resolved" value="1" <?= $show_resolved ? 'checked' : '' ?>> Tampilkan resolved</label>
         </div>
         <div style="display:flex; gap:8px;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
             <a href="log_error" class="btn btn-outline"><i class="fas fa-undo"></i> Reset</a>
-            <a href="?hapus_semua=1" class="btn btn-danger" onclick="return confirm('Hapus SEMUA log error?')"><i class="fas fa-trash-alt"></i> Hapus Semua</a>
+            <a href="?hapus_semua=1" class="btn btn-danger" data-confirm="Hapus SEMUA log error?"><i class="fas fa-trash-alt"></i> Hapus Semua</a>
         </div>
     </form>
 
@@ -149,7 +149,7 @@ while ($row = $levels_res->fetch_assoc()) $levels[] = $row['error_level'];
                             <?php if (!$err['is_resolved']): ?>
                                 <a href="?resolved=<?= $err['id'] ?>&<?= http_build_query($_GET) ?>" class="btn-sm btn-sm-success">✓ Tandai resolved</a>
                             <?php endif; ?>
-                            <a href="?hapus=<?= $err['id'] ?>&<?= http_build_query($_GET) ?>" class="btn-sm btn-sm-danger" onclick="return confirm('Hapus log ini?')">🗑 Hapus</a>
+                            <a href="?hapus=<?= $err['id'] ?>&<?= http_build_query($_GET) ?>" class="btn-sm btn-sm-danger" data-confirm="Hapus log ini?">🗑 Hapus</a>
                         </div>
                     </div>
                     <div style="font-size:0.8rem; margin-top: 6px;">

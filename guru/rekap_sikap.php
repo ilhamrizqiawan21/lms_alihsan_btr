@@ -31,6 +31,10 @@ if ($kelas_mapel_id && $km_check) {
 }
 
 $kelas_mapel_options = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
+
+if (!$kelas_mapel_options || $kelas_mapel_options->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
 ?>
 <div class="page-header"><h2>Rekap Nilai Sikap</h2></div>
 <div class="form-container">

@@ -4,6 +4,10 @@ cek_login([3]);
 $title = 'Progress Siswa';
 include '../includes/header.php';
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare(
     "SELECT s.id, s.nis, k.nama_kelas, k.tingkat 

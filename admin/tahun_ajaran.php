@@ -140,7 +140,7 @@ $tahun_list = $conn->query("SELECT * FROM tahun_ajaran ORDER BY tahun DESC");
                             ?>
                         </td>
                         <td class="action-buttons">
-                            <a href="?hapus=<?= $t['id'] ?>" class="btn btn-sm btn-hapus" onclick="return confirm('Hapus tahun ajaran <?= htmlspecialchars($t['tahun']) ?>?')">
+                            <a href="?hapus=<?= $t['id'] ?>" class="btn btn-sm btn-hapus" onclick="var _href=this.href;event.preventDefault();confirmModal('Hapus tahun ajaran <?= htmlspecialchars($t['tahun']) ?>?').then(r=>r&&(window.location=_href))">
                                 <i class="fas fa-trash-alt"></i> Hapus
                             </a>
                         </td>

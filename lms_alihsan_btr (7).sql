@@ -35,6 +35,25 @@ CREATE TABLE `blocked_ips` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+DROP TABLE IF EXISTS `calendar_events`;
+CREATE TABLE `calendar_events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `event_date` date NOT NULL,
+  `is_holiday` tinyint(1) NOT NULL DEFAULT '0',
+  `scope` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user',
+  `is_done` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_event_date` (`event_date`),
+  CONSTRAINT `calendar_events_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 DROP TABLE IF EXISTS `chat_messages`;
 CREATE TABLE `chat_messages` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -51,6 +70,28 @@ CREATE TABLE `chat_messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
+DROP TABLE IF EXISTS `dashboard_widgets`;
+CREATE TABLE `dashboard_widgets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `widget_key` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_visible` tinyint(1) DEFAULT '1',
+  `widget_order` int DEFAULT '0',
+  `is_pinned` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_widget` (`user_id`,`widget_key`),
+  CONSTRAINT `dashboard_widgets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_widgets_user_integrity` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `dashboard_widgets` (`id`, `user_id`, `widget_key`, `is_visible`, `widget_order`, `is_pinned`, `created_at`, `updated_at`) VALUES
+(1,	1,	'stat_cards',	1,	1,	1,	'2026-05-31 00:50:35',	'2026-05-31 00:50:35'),
+(2,	1,	'login_history',	1,	2,	0,	'2026-05-31 00:50:35',	'2026-05-31 00:50:35'),
+(3,	1,	'pengumuman',	1,	3,	0,	'2026-05-31 00:50:35',	'2026-05-31 00:50:35'),
+(4,	1,	'attendance_chart',	1,	4,	0,	'2026-05-31 00:50:35',	'2026-05-31 00:50:35');
+
 DROP TABLE IF EXISTS `guru_mapel`;
 CREATE TABLE `guru_mapel` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -60,6 +101,7 @@ CREATE TABLE `guru_mapel` (
   UNIQUE KEY `guru_mapel_unique` (`guru_id`,`mapel_id`),
   KEY `mapel_id` (`mapel_id`),
   CONSTRAINT `fk_gurumapel_guru` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_gurumapel_guru_integrity` FOREIGN KEY (`guru_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_gurumapel_mapel` FOREIGN KEY (`mapel_id`) REFERENCES `mata_pelajaran` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -74,20 +116,8 @@ CREATE TABLE `kelas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `kelas` (`id`, `tingkat`, `nama_kelas`) VALUES
-(1,	'VII',	'VII-A'),
-(2,	'VII',	'VII-B'),
-(3,	'VII',	'VII-C'),
-(4,	'VII',	'VII-D'),
-(6,	'VIII',	'VIII-A'),
-(7,	'VIII',	'VIII-B'),
-(8,	'VIII',	'VIII-C'),
-(9,	'VIII',	'VIII-D'),
-(10,	'VIII',	'VIII-E'),
-(11,	'IX',	'IX-A'),
-(12,	'IX',	'IX-B'),
-(13,	'IX',	'IX-C'),
-(14,	'IX',	'IX-D'),
-(15,	'IX',	'IX-E');
+(17,	'VII',	'VII-A'),
+(18,	'VII',	'VII-B');
 
 DROP TABLE IF EXISTS `kelas_mapel`;
 CREATE TABLE `kelas_mapel` (
@@ -108,25 +138,6 @@ CREATE TABLE `kelas_mapel` (
   CONSTRAINT `fk_kelasmapel_tahun` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `tahun_ajaran` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `kelas_mapel` (`id`, `kelas_id`, `mapel_id`, `guru_id`, `tahun_ajaran_id`, `semester`) VALUES
-(4,	2,	4,	20,	2,	'2'),
-(5,	1,	6,	311,	2,	'2'),
-(6,	10,	13,	20,	2,	'2'),
-(7,	6,	22,	299,	2,	'2'),
-(8,	1,	12,	305,	2,	'2'),
-(9,	2,	12,	305,	2,	'2'),
-(10,	3,	12,	305,	2,	'2'),
-(11,	4,	12,	305,	2,	'2'),
-(12,	6,	12,	305,	2,	'2'),
-(13,	7,	12,	305,	2,	'2'),
-(14,	8,	12,	305,	2,	'2'),
-(15,	9,	12,	305,	2,	'2'),
-(16,	10,	12,	305,	2,	'2'),
-(17,	11,	12,	305,	2,	'2'),
-(18,	12,	12,	305,	2,	'2'),
-(19,	13,	12,	305,	2,	'2'),
-(20,	14,	12,	305,	2,	'2'),
-(21,	15,	12,	305,	2,	'2');
 
 DROP TABLE IF EXISTS `log_login`;
 CREATE TABLE `log_login` (
@@ -140,101 +151,58 @@ CREATE TABLE `log_login` (
   `login_time` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  KEY `login_time` (`login_time`)
+  KEY `login_time` (`login_time`),
+  CONSTRAINT `fk_loglogin_user_integrity` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `log_login` (`id`, `user_id`, `username`, `nama_lengkap`, `role`, `ip_address`, `user_agent`, `login_time`) VALUES
 (1,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-08 21:59:26'),
-(2,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-08 22:42:21'),
 (3,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-08 22:47:32'),
-(4,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-08 22:48:36'),
 (5,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-08 22:49:25'),
 (6,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:42:15'),
-(7,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:42:24'),
 (8,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:43:14'),
 (9,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:44:01'),
-(10,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:44:16'),
 (11,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:45:20'),
-(12,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 05:45:52'),
 (13,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 07:06:17'),
-(14,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 07:07:10'),
 (15,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 11:34:19'),
-(16,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 12:56:24'),
-(17,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:24:48'),
 (18,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:43:10'),
 (19,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:48:28'),
 (20,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:52:46'),
 (21,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:54:18'),
 (22,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:58:11'),
-(23,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:58:54'),
 (24,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 13:59:20'),
 (25,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 14:00:06'),
-(26,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 14:10:37'),
-(27,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 14:10:49'),
 (28,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 14:10:59'),
-(29,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 14:11:16'),
 (30,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 15:55:29'),
-(31,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 18:54:37'),
 (32,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 19:08:00'),
-(33,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 19:08:43'),
 (34,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 20:51:25'),
-(35,	7,	'87',	'Inna',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 20:52:16'),
 (36,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 20:57:18'),
-(37,	2,	'a',	'a',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 20:57:47'),
 (38,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 21:02:08'),
-(39,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-09 21:03:10'),
-(40,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 05:43:28'),
 (41,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 11:41:56'),
-(42,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 11:58:27'),
-(43,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 11:59:31'),
 (44,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 12:00:56'),
 (45,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 18:01:39'),
-(46,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 19:15:33'),
 (47,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 20:00:16'),
 (48,	1,	'admin',	'Administrator',	'admin',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-10 20:05:48'),
-(49,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 21:29:19'),
 (50,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 21:30:10'),
-(51,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 21:30:36'),
-(52,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-10 21:41:35'),
-(53,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:02:24'),
 (54,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:02:38'),
-(55,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:03:23'),
 (56,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:11:20'),
 (57,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:11:54'),
-(58,	8,	'2345',	'aaa',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:12:14'),
-(59,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 08:12:40'),
 (60,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 09:05:57'),
-(61,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 09:34:53'),
-(62,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 11:39:18'),
 (63,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 12:35:01'),
-(64,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 15:04:48'),
-(65,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 15:07:45'),
 (66,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 15:16:07'),
 (67,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:01:32'),
-(68,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:18:51'),
-(69,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:20:04'),
 (70,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:21:58'),
-(71,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:29:13'),
-(72,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:29:35'),
 (73,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:30:31'),
-(74,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:32:58'),
 (75,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-11 20:35:18'),
 (76,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',	'2026-05-12 04:49:02'),
 (77,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0',	'2026-05-12 05:10:24'),
-(78,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 11:10:11'),
 (79,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 15:57:23'),
-(80,	6,	'28',	'testing',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:11:10'),
 (81,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:22:46'),
 (82,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:32:20'),
-(83,	18,	'5678',	'afghj',	'siswa',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:34:12'),
-(84,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:34:44'),
-(85,	5,	'c',	'asd',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:36:40'),
-(86,	3,	'b',	'bbv',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:39:18'),
 (87,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-12 16:42:32'),
 (88,	1,	'admin',	'Administrator',	'admin',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-12 16:50:50'),
 (89,	1,	'admin',	'Administrator',	'admin',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-12 18:47:48'),
 (90,	20,	'ilhamzp',	'ILHAM RIZQIAWAN, S.Pd.',	'guru',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-12 18:49:09'),
-(91,	19,	'1234',	'Hggggg',	'siswa',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-12 18:49:55'),
 (92,	1,	'admin',	'Administrator',	'admin',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-12 22:21:28'),
 (93,	21,	'196808111994032001',	'Dra. Hj. LINA NURHASANAH',	'kepala_sekolah',	'192.168.43.1',	'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-13 07:40:36'),
 (94,	21,	'196808111994032001',	'Dra. Hj. LINA NURHASANAH',	'kepala_sekolah',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-13 07:41:10'),
@@ -249,7 +217,6 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `nama_lengkap`, `role`, `i
 (103,	20,	'ilhamzp',	'ILHAM RIZQIAWAN, S.Pd.',	'guru',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-13 20:17:37'),
 (104,	1,	'admin',	'Administrator',	'admin',	'::1',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-13 20:47:04'),
 (105,	21,	'196808111994032001',	'Dra. Hj. LINA NURHASANAH',	'kepala_sekolah',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-13 20:47:33'),
-(106,	19,	'1234',	'Hggggg',	'siswa',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-13 20:48:19'),
 (107,	20,	'ilhamzp',	'ILHAM RIZQIAWAN, S.Pd.',	'guru',	'192.168.1.6',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-13 20:50:20'),
 (108,	20,	'ilhamzp',	'ILHAM RIZQIAWAN, S.Pd.',	'guru',	'192.168.1.7',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-14 05:38:44'),
 (109,	1,	'admin',	'Administrator',	'admin',	'192.168.100.184',	'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-14 09:31:52'),
@@ -288,7 +255,33 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `nama_lengkap`, `role`, `i
 (142,	1,	'admin',	'Administrator',	'admin',	'180.247.241.65',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-18 07:34:15'),
 (143,	1,	'admin',	'Administrator',	'admin',	'180.247.241.92',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-18 15:02:48'),
 (144,	305,	'021',	'CEPI RIZKI SUPARDI, S.Pd.I.',	'guru',	'180.247.241.120',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-18 15:03:42'),
-(145,	1,	'admin',	'Administrator',	'admin',	'180.247.241.81',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-29 11:19:54');
+(145,	1,	'admin',	'Administrator',	'admin',	'180.247.241.81',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-29 11:19:54'),
+(146,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-30 22:26:23'),
+(147,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-31 06:00:47'),
+(148,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-31 07:40:31'),
+(149,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-31 07:58:59'),
+(150,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-05-31 19:41:14'),
+(151,	1,	'admin',	'Administrator',	'admin',	'182.10.98.197',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36',	'2026-05-31 22:06:05'),
+(152,	1,	'admin',	'Administrator',	'admin',	'182.10.100.150',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',	'2026-06-09 04:10:09'),
+(153,	1,	'admin',	'Administrator',	'admin',	'182.10.99.210',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',	'2026-06-14 14:45:10'),
+(154,	311,	'028',	'ACHMAD FATHONI HIDAYAT, S.P.',	'guru',	'114.10.146.151',	'Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/149.0.7827.137 Mobile/15E148 Safari/604.1',	'2026-06-17 07:14:40'),
+(155,	1,	'admin',	'Administrator',	'admin',	'182.10.100.100',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-17 20:36:51'),
+(156,	311,	'028',	'ACHMAD FATHONI HIDAYAT, S.P.',	'guru',	'114.10.12.8',	'Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/149.0.7827.137 Mobile/15E148 Safari/604.1',	'2026-06-19 10:23:18'),
+(157,	311,	'028',	'ACHMAD FATHONI HIDAYAT, S.P.',	'guru',	'114.10.12.8',	'Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/149.0.7827.137 Mobile/15E148 Safari/604.1',	'2026-06-19 10:23:46'),
+(158,	1,	'admin',	'Administrator',	'admin',	'180.247.241.89',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 10:25:34'),
+(159,	1,	'admin',	'Administrator',	'admin',	'180.247.241.89',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 10:25:51'),
+(160,	1,	'admin',	'Administrator',	'admin',	'180.247.241.89',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 10:26:25'),
+(161,	1,	'admin',	'Administrator',	'admin',	'180.247.241.115',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 10:30:00'),
+(162,	311,	'028',	'ACHMAD FATHONI HIDAYAT, S.P.',	'guru',	'180.247.241.89',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 10:31:07'),
+(163,	1,	'admin',	'Administrator',	'admin',	'180.247.241.89',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',	'2026-06-19 14:01:15'),
+(164,	1,	'admin',	'Administrator',	'admin',	'182.10.100.100',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',	'2026-06-19 20:06:38'),
+(165,	1,	'admin',	'Administrator',	'admin',	'182.10.100.100',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',	'2026-06-19 21:25:53'),
+(166,	1,	'admin',	'Administrator',	'admin',	'182.10.100.100',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',	'2026-06-19 21:26:39'),
+(167,	20,	'022',	'ILHAM RIZQIAWAN, S.Pd.',	'guru',	'182.10.100.100',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',	'2026-06-19 21:27:26'),
+(168,	311,	'028',	'ACHMAD FATHONI HIDAYAT, S.P.',	'guru',	'45.198.148.24',	'Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/149.0.7827.137 Mobile/15E148 Safari/604.1',	'2026-06-20 05:57:08'),
+(169,	1,	'admin',	'Administrator',	'admin',	'182.10.100.100',	'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',	'2026-06-20 05:57:23'),
+(170,	1,	'admin',	'Administrator',	'admin',	'182.10.99.245',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',	'2026-06-20 18:13:48'),
+(171,	1,	'admin',	'Administrator',	'admin',	'182.10.99.245',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0',	'2026-06-20 20:18:10');
 
 DROP TABLE IF EXISTS `login_attempts`;
 CREATE TABLE `login_attempts` (
@@ -302,6 +295,32 @@ CREATE TABLE `login_attempts` (
   KEY `idx_username_time` (`username`,`attempt_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO `login_attempts` (`id`, `ip_address`, `username`, `attempt_time`, `success`) VALUES
+(1,	'182.10.98.197',	'admin',	'2026-05-30 22:26:23',	1),
+(2,	'182.10.98.197',	'admin',	'2026-05-31 06:00:47',	1),
+(3,	'182.10.98.197',	'admin',	'2026-05-31 07:40:32',	1),
+(4,	'182.10.98.197',	'admin',	'2026-05-31 07:58:59',	1),
+(5,	'182.10.98.197',	'admin',	'2026-05-31 19:41:14',	1),
+(6,	'182.10.98.197',	'admin',	'2026-05-31 22:06:05',	1),
+(7,	'182.10.100.150',	'admin',	'2026-06-09 04:10:09',	1),
+(8,	'182.10.99.210',	'admin',	'2026-06-14 14:45:10',	1),
+(9,	'114.10.146.151',	'028',	'2026-06-17 07:14:40',	1),
+(10,	'182.10.100.100',	'admin',	'2026-06-17 20:36:51',	1),
+(11,	'114.10.12.8',	'028',	'2026-06-19 10:23:21',	1),
+(12,	'114.10.12.8',	'028',	'2026-06-19 10:23:46',	1),
+(13,	'180.247.241.89',	'admin',	'2026-06-19 10:25:34',	1),
+(14,	'180.247.241.89',	'admin',	'2026-06-19 10:25:51',	1),
+(15,	'180.247.241.89',	'admin',	'2026-06-19 10:26:26',	1),
+(16,	'180.247.241.115',	'admin',	'2026-06-19 10:30:00',	1),
+(17,	'180.247.241.89',	'028',	'2026-06-19 10:31:09',	1),
+(18,	'182.10.100.100',	'admin',	'2026-06-19 20:06:38',	1),
+(19,	'182.10.100.100',	'admin',	'2026-06-19 21:25:53',	1),
+(20,	'182.10.100.100',	'admin',	'2026-06-19 21:26:39',	1),
+(21,	'182.10.100.100',	'022',	'2026-06-19 21:27:26',	1),
+(22,	'45.198.148.24',	'028',	'2026-06-20 05:57:08',	1),
+(23,	'182.10.100.100',	'admin',	'2026-06-20 05:57:23',	1),
+(24,	'182.10.99.245',	'admin',	'2026-06-20 18:13:48',	1),
+(25,	'182.10.99.245',	'admin',	'2026-06-20 20:18:10',	1);
 
 DROP TABLE IF EXISTS `mata_pelajaran`;
 CREATE TABLE `mata_pelajaran` (
@@ -346,8 +365,6 @@ CREATE TABLE `materi` (
   CONSTRAINT `fk_materi_kelasmapel` FOREIGN KEY (`kelas_mapel_id`) REFERENCES `kelas_mapel` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `materi` (`id`, `kelas_mapel_id`, `judul`, `deskripsi`, `file_materi`, `created_at`) VALUES
-(6,	7,	'Kebangkitan Nasional',	'1',	'1778808738_aaef24ce.pdf',	'2026-05-15 08:32:18');
 
 DROP TABLE IF EXISTS `nilai_akhir`;
 CREATE TABLE `nilai_akhir` (
@@ -387,7 +404,8 @@ CREATE TABLE `notifikasi` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  KEY `is_read` (`is_read`)
+  KEY `is_read` (`is_read`),
+  CONSTRAINT `fk_notifikasi_user_integrity` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO `notifikasi` (`id`, `user_id`, `tipe`, `judul`, `pesan`, `link`, `is_read`, `created_at`) VALUES
@@ -431,10 +449,23 @@ CREATE TABLE `pengaturan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `pengaturan` (`id`, `key`, `value`) VALUES
-(1,	'warna_tema',	'biru-azure'),
+(1,	'warna_tema',	'hijau'),
 (2,	'nama_sekolah',	'MTs. Al-Ihsan Batujajar'),
-(3,	'semester_aktif',	'2'),
-(6,	'tahun_ajaran_aktif',	'2025/2026');
+(3,	'semester_aktif',	'1'),
+(6,	'tahun_ajaran_aktif',	'2026/2027');
+
+DROP TABLE IF EXISTS `pengumpulan_files`;
+CREATE TABLE `pengumpulan_files` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `pengumpulan_id` int NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `uploaded_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `pengumpulan_id` (`pengumpulan_id`),
+  CONSTRAINT `pengumpulan_files_ibfk_1` FOREIGN KEY (`pengumpulan_id`) REFERENCES `pengumpulan_tugas` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 DROP TABLE IF EXISTS `pengumpulan_tugas`;
 CREATE TABLE `pengumpulan_tugas` (
@@ -454,8 +485,6 @@ CREATE TABLE `pengumpulan_tugas` (
   CONSTRAINT `fk_pengumpulan_tugas` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `pengumpulan_tugas` (`id`, `tugas_id`, `siswa_id`, `status`, `nilai`, `file_upload`, `teks_jawaban`, `catatan`, `tanggal_kumpul`) VALUES
-(4,	6,	198,	'sudah',	NULL,	NULL,	'1',	NULL,	'2026-05-14 20:09:17');
 
 DROP TABLE IF EXISTS `pengumuman`;
 CREATE TABLE `pengumuman` (
@@ -474,24 +503,6 @@ CREATE TABLE `pengumuman` (
   CONSTRAINT `fk_pengumuman_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `pengumuman` (`id`, `judul`, `isi`, `target`, `target_kelas`, `kelas_mapel_id`, `created_by`, `created_at`) VALUES
-(1,	'1',	'tes',	'semua',	'',	NULL,	1,	'2026-05-10 12:02:35'),
-(2,	'2',	'tes',	'',	'11',	NULL,	1,	'2026-05-10 12:02:47'),
-(3,	'aa',	'sss',	'semua',	'',	NULL,	1,	'2026-05-12 04:54:14'),
-(4,	'1',	'1',	'semua',	'',	NULL,	1,	'2026-05-12 05:17:55'),
-(5,	'1',	'11111',	'semua',	'',	NULL,	1,	'2026-05-12 05:21:56'),
-(6,	'1',	'1',	'semua',	'',	NULL,	1,	'2026-05-12 05:28:20'),
-(7,	'1',	'11',	'semua',	'',	NULL,	1,	'2026-05-12 05:39:43'),
-(9,	'asa',	'ssss',	'semua',	'',	NULL,	1,	'2026-05-12 08:05:14'),
-(10,	'asa',	'assss',	'semua',	'',	NULL,	1,	'2026-05-12 08:06:51'),
-(11,	'asasas',	'asasas',	'semua',	'',	NULL,	1,	'2026-05-12 08:07:08'),
-(12,	'sasa',	'sassa',	'semua',	'',	NULL,	1,	'2026-05-12 08:08:15'),
-(13,	'asasasasa',	'asasasa',	'semua',	'',	NULL,	1,	'2026-05-12 08:11:39'),
-(14,	'asasa',	'ssss',	'semua',	'',	NULL,	1,	'2026-05-12 08:13:24'),
-(15,	'sasa',	'saasasa',	'semua',	'',	NULL,	1,	'2026-05-12 08:18:36'),
-(17,	'sasas',	'asas',	'semua',	'',	NULL,	1,	'2026-05-12 08:19:54'),
-(18,	'1',	'aa',	'semua',	'',	NULL,	1,	'2026-05-12 15:58:02'),
-(19,	'111',	'111',	'semua',	'',	NULL,	1,	'2026-05-12 15:59:37');
 
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
@@ -558,278 +569,19 @@ CREATE TABLE `siswa` (
   `nis` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
   `kelas_id` int NOT NULL,
   `angkatan` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` enum('aktif','lulus','keluar') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'aktif',
+  `tinggal_kelas` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `nis` (`nis`),
   UNIQUE KEY `user_id` (`user_id`),
   KEY `kelas_id` (`kelas_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_tinggal_kelas` (`tinggal_kelas`),
   CONSTRAINT `fk_siswa_kelas` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`),
-  CONSTRAINT `fk_siswa_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_siswa_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_siswa_user_integrity` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `siswa` (`id`, `user_id`, `nis`, `kelas_id`, `angkatan`) VALUES
-(18,	24,	'7101',	1,	NULL),
-(19,	25,	'7102',	1,	NULL),
-(20,	26,	'7103',	1,	NULL),
-(21,	27,	'7104',	1,	NULL),
-(22,	28,	'7105',	1,	NULL),
-(23,	29,	'7106',	1,	NULL),
-(24,	30,	'7107',	1,	NULL),
-(25,	31,	'7108',	1,	NULL),
-(26,	32,	'7109',	1,	NULL),
-(27,	33,	'7110',	1,	NULL),
-(28,	34,	'7111',	1,	NULL),
-(29,	35,	'7112',	1,	NULL),
-(30,	36,	'7113',	1,	NULL),
-(31,	37,	'7117',	1,	NULL),
-(32,	38,	'7118',	1,	NULL),
-(33,	39,	'7114',	1,	NULL),
-(34,	40,	'7115',	1,	NULL),
-(35,	41,	'7116',	1,	NULL),
-(36,	42,	'7119',	1,	NULL),
-(37,	43,	'7120',	1,	NULL),
-(38,	44,	'7121',	1,	NULL),
-(39,	45,	'7122',	1,	NULL),
-(40,	46,	'7124',	1,	NULL),
-(41,	47,	'7123',	1,	NULL),
-(42,	48,	'7125',	1,	NULL),
-(43,	49,	'7127',	1,	NULL),
-(44,	50,	'7128',	1,	NULL),
-(45,	51,	'7129',	1,	NULL),
-(46,	52,	'7130',	1,	NULL),
-(47,	53,	'7131',	1,	NULL),
-(48,	54,	'7132',	1,	NULL),
-(49,	55,	'7201',	2,	NULL),
-(50,	56,	'7202',	2,	NULL),
-(51,	57,	'7203',	2,	NULL),
-(52,	58,	'7204',	2,	NULL),
-(53,	59,	'7205',	2,	NULL),
-(54,	60,	'7206',	2,	NULL),
-(55,	61,	'7207',	2,	NULL),
-(56,	62,	'7208',	2,	NULL),
-(57,	63,	'7209',	2,	NULL),
-(58,	64,	'7210',	2,	NULL),
-(59,	65,	'7211',	2,	NULL),
-(60,	66,	'7212',	2,	NULL),
-(61,	67,	'7213',	2,	NULL),
-(62,	68,	'7214',	2,	NULL),
-(63,	69,	'7216',	2,	NULL),
-(64,	70,	'7220',	2,	NULL),
-(65,	71,	'7215',	2,	NULL),
-(66,	72,	'7217',	2,	NULL),
-(67,	73,	'7218',	2,	NULL),
-(68,	74,	'7219',	2,	NULL),
-(69,	75,	'7221',	2,	NULL),
-(70,	76,	'7222',	2,	NULL),
-(71,	77,	'7223',	2,	NULL),
-(72,	78,	'7224',	2,	NULL),
-(73,	79,	'7225',	2,	NULL),
-(74,	80,	'7226',	2,	NULL),
-(75,	81,	'7227',	2,	NULL),
-(76,	82,	'7228',	2,	NULL),
-(77,	83,	'7229',	2,	NULL),
-(78,	84,	'7230',	2,	NULL),
-(79,	85,	'7231',	2,	NULL),
-(80,	86,	'7232',	2,	NULL),
-(81,	87,	'7301',	3,	NULL),
-(82,	88,	'7302',	3,	NULL),
-(83,	89,	'7303',	3,	NULL),
-(84,	90,	'7304',	3,	NULL),
-(85,	91,	'7305',	3,	NULL),
-(86,	92,	'7306',	3,	NULL),
-(87,	93,	'7307',	3,	NULL),
-(88,	94,	'7308',	3,	NULL),
-(89,	95,	'7309',	3,	NULL),
-(90,	96,	'7310',	3,	NULL),
-(91,	97,	'7311',	3,	NULL),
-(92,	98,	'7312',	3,	NULL),
-(93,	99,	'7313',	3,	NULL),
-(94,	100,	'7315',	3,	NULL),
-(95,	101,	'7314',	3,	NULL),
-(96,	102,	'7316',	3,	NULL),
-(97,	103,	'7317',	3,	NULL),
-(98,	104,	'7318',	3,	NULL),
-(99,	105,	'7319',	3,	NULL),
-(100,	106,	'7320',	3,	NULL),
-(101,	107,	'7321',	3,	NULL),
-(102,	108,	'7322',	3,	NULL),
-(103,	109,	'7323',	3,	NULL),
-(104,	110,	'7324',	3,	NULL),
-(105,	111,	'7325',	3,	NULL),
-(106,	112,	'7326',	3,	NULL),
-(107,	113,	'7327',	3,	NULL),
-(108,	114,	'7328',	3,	NULL),
-(109,	115,	'7329',	3,	NULL),
-(110,	116,	'7330',	3,	NULL),
-(111,	117,	'7331',	3,	NULL),
-(112,	118,	'7332',	3,	NULL),
-(113,	119,	'7434',	4,	NULL),
-(114,	120,	'7401',	4,	NULL),
-(115,	121,	'7402',	4,	NULL),
-(116,	122,	'7403',	4,	NULL),
-(117,	123,	'7404',	4,	NULL),
-(118,	124,	'7405',	4,	NULL),
-(119,	125,	'7406',	4,	NULL),
-(120,	126,	'7407',	4,	NULL),
-(121,	127,	'7408',	4,	NULL),
-(122,	128,	'7409',	4,	NULL),
-(123,	129,	'7410',	4,	NULL),
-(124,	130,	'7411',	4,	NULL),
-(125,	131,	'7412',	4,	NULL),
-(126,	132,	'7413',	4,	NULL),
-(127,	133,	'7414',	4,	NULL),
-(128,	134,	'7415',	4,	NULL),
-(129,	135,	'7417',	4,	NULL),
-(130,	136,	'7416',	4,	NULL),
-(131,	137,	'7420',	4,	NULL),
-(132,	138,	'7418',	4,	NULL),
-(133,	139,	'7419',	4,	NULL),
-(134,	140,	'7421',	4,	NULL),
-(135,	141,	'7422',	4,	NULL),
-(136,	142,	'7423',	4,	NULL),
-(137,	143,	'7424',	4,	NULL),
-(138,	144,	'7427',	4,	NULL),
-(139,	145,	'7426',	4,	NULL),
-(140,	146,	'7428',	4,	NULL),
-(141,	147,	'7429',	4,	NULL),
-(142,	148,	'7433',	4,	NULL),
-(143,	149,	'7430',	4,	NULL),
-(144,	150,	'7431',	4,	NULL),
-(145,	151,	'8101',	6,	NULL),
-(146,	152,	'8102',	6,	NULL),
-(147,	153,	'8103',	6,	NULL),
-(148,	154,	'8104',	6,	NULL),
-(149,	155,	'8105',	6,	NULL),
-(150,	156,	'8106',	6,	NULL),
-(151,	157,	'8107',	6,	NULL),
-(152,	158,	'8108',	6,	NULL),
-(153,	159,	'8109',	6,	NULL),
-(154,	160,	'8110',	6,	NULL),
-(155,	161,	'8111',	6,	NULL),
-(156,	162,	'8112',	6,	NULL),
-(157,	163,	'8113',	6,	NULL),
-(158,	164,	'8114',	6,	NULL),
-(159,	165,	'8130',	6,	NULL),
-(160,	166,	'8116',	6,	NULL),
-(161,	167,	'8117',	6,	NULL),
-(162,	168,	'8118',	6,	NULL),
-(163,	169,	'8119',	6,	NULL),
-(164,	170,	'8120',	6,	NULL),
-(165,	171,	'8121',	6,	NULL),
-(166,	172,	'8122',	6,	NULL),
-(167,	173,	'8123',	6,	NULL),
-(168,	174,	'8124',	6,	NULL),
-(169,	175,	'8125',	6,	NULL),
-(170,	176,	'8126',	6,	NULL),
-(171,	177,	'8127',	6,	NULL),
-(172,	178,	'8301',	8,	NULL),
-(173,	179,	'8302',	8,	NULL),
-(174,	180,	'8303',	8,	NULL),
-(175,	181,	'8304',	8,	NULL),
-(176,	182,	'8305',	8,	NULL),
-(177,	183,	'8306',	8,	NULL),
-(178,	184,	'8307',	8,	NULL),
-(179,	185,	'8308',	8,	NULL),
-(180,	186,	'8309',	8,	NULL),
-(181,	187,	'8310',	8,	NULL),
-(182,	188,	'8311',	8,	NULL),
-(183,	189,	'8312',	8,	NULL),
-(184,	190,	'8313',	8,	NULL),
-(185,	191,	'8314',	8,	NULL),
-(186,	192,	'8315',	8,	NULL),
-(187,	193,	'8316',	8,	NULL),
-(188,	194,	'8317',	8,	NULL),
-(189,	195,	'8318',	8,	NULL),
-(190,	196,	'8319',	8,	NULL),
-(191,	197,	'8320',	8,	NULL),
-(192,	198,	'8321',	8,	NULL),
-(193,	199,	'8322',	8,	NULL),
-(194,	200,	'8323',	8,	NULL),
-(195,	201,	'8324',	8,	NULL),
-(196,	202,	'8325',	8,	NULL),
-(197,	203,	'8326',	8,	NULL),
-(198,	204,	'8501',	10,	NULL),
-(199,	205,	'8502',	10,	NULL),
-(200,	206,	'8503',	10,	NULL),
-(201,	207,	'8504',	10,	NULL),
-(202,	208,	'8505',	10,	NULL),
-(203,	209,	'8506',	10,	NULL),
-(204,	210,	'8507',	10,	NULL),
-(205,	211,	'8508',	10,	NULL),
-(206,	212,	'8509',	10,	NULL),
-(207,	213,	'8510',	10,	NULL),
-(208,	214,	'8511',	10,	NULL),
-(209,	215,	'8512',	10,	NULL),
-(210,	216,	'8513',	10,	NULL),
-(211,	217,	'8514',	10,	NULL),
-(212,	218,	'8515',	10,	NULL),
-(213,	219,	'8516',	10,	NULL),
-(214,	220,	'8517',	10,	NULL),
-(215,	221,	'8518',	10,	NULL),
-(216,	222,	'8519',	10,	NULL),
-(217,	223,	'8520',	10,	NULL),
-(218,	224,	'8521',	10,	NULL),
-(219,	225,	'8522',	10,	NULL),
-(220,	226,	'8523',	10,	NULL),
-(221,	227,	'8524',	10,	NULL),
-(222,	228,	'8525',	10,	NULL),
-(223,	229,	'8526',	10,	NULL),
-(224,	230,	'8527',	10,	NULL),
-(225,	231,	'8528',	10,	NULL),
-(227,	233,	'8401',	9,	NULL),
-(228,	234,	'8402',	9,	NULL),
-(229,	235,	'8403',	9,	NULL),
-(230,	236,	'8404',	9,	NULL),
-(231,	237,	'8405',	9,	NULL),
-(232,	238,	'8406',	9,	NULL),
-(233,	239,	'8407',	9,	NULL),
-(234,	240,	'8408',	9,	NULL),
-(235,	241,	'8409',	9,	NULL),
-(236,	242,	'8410',	9,	NULL),
-(237,	243,	'8411',	9,	NULL),
-(238,	244,	'8412',	9,	NULL),
-(239,	245,	'8413',	9,	NULL),
-(240,	246,	'8414',	9,	NULL),
-(241,	247,	'8415',	9,	NULL),
-(242,	248,	'8416',	9,	NULL),
-(243,	249,	'8417',	9,	NULL),
-(244,	250,	'8418',	9,	NULL),
-(245,	251,	'8419',	9,	NULL),
-(246,	252,	'8420',	9,	NULL),
-(247,	253,	'8421',	9,	NULL),
-(248,	254,	'8422',	9,	NULL),
-(249,	255,	'8423',	9,	NULL),
-(250,	256,	'8424',	9,	NULL),
-(251,	257,	'8425',	9,	NULL),
-(252,	258,	'8426',	9,	NULL),
-(253,	259,	'8427',	9,	NULL),
-(254,	260,	'8428',	9,	NULL),
-(255,	261,	'8201',	7,	NULL),
-(256,	262,	'8202',	7,	NULL),
-(257,	263,	'8203',	7,	NULL),
-(258,	264,	'8204',	7,	NULL),
-(259,	265,	'8205',	7,	NULL),
-(260,	266,	'8206',	7,	NULL),
-(261,	267,	'8207',	7,	NULL),
-(262,	268,	'8208',	7,	NULL),
-(263,	269,	'8209',	7,	NULL),
-(264,	270,	'8210',	7,	NULL),
-(265,	271,	'8211',	7,	NULL),
-(266,	272,	'8212',	7,	NULL),
-(267,	273,	'8213',	7,	NULL),
-(268,	274,	'8214',	7,	NULL),
-(269,	275,	'8215',	7,	NULL),
-(270,	276,	'8216',	7,	NULL),
-(271,	277,	'8217',	7,	NULL),
-(272,	278,	'8218',	7,	NULL),
-(273,	279,	'8219',	7,	NULL),
-(274,	280,	'8220',	7,	NULL),
-(275,	281,	'8221',	7,	NULL),
-(276,	282,	'8222',	7,	NULL),
-(277,	283,	'8223',	7,	NULL),
-(278,	284,	'8224',	7,	NULL),
-(279,	285,	'8225',	7,	NULL),
-(280,	286,	'8226',	7,	NULL),
-(281,	287,	'8227',	7,	NULL);
 
 DROP TABLE IF EXISTS `system_errors`;
 CREATE TABLE `system_errors` (
@@ -852,6 +604,43 @@ CREATE TABLE `system_errors` (
   KEY `is_resolved` (`is_resolved`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO `system_errors` (`id`, `error_level`, `error_code`, `message`, `file`, `line`, `trace`, `url`, `user_id`, `ip_address`, `user_agent`, `created_at`, `is_resolved`) VALUES
+(1,	'WARNING',	NULL,	'Undefined array key \"id\"',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/dashboard.php',	35,	NULL,	'/lms_alihsan_btr/admin/dashboard',	NULL,	NULL,	NULL,	'2026-06-09 04:10:09',	0),
+(2,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(3,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(4,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(5,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(6,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(7,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(8,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(9,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(10,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(11,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(12,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(13,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(14,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:50',	0),
+(15,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:51',	0),
+(16,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:51',	0),
+(17,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:51',	0),
+(18,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:51',	0),
+(19,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:51',	0),
+(20,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:52',	0),
+(21,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:52',	0),
+(22,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:52',	0),
+(23,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:52',	0),
+(24,	'DEPRECATED',	NULL,	'htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/user_management.php',	251,	NULL,	'/lms_alihsan_btr/admin/user_management',	NULL,	NULL,	NULL,	'2026-06-09 04:10:52',	0),
+(25,	'WARNING',	NULL,	'Undefined array key \"id\"',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/dashboard.php',	35,	NULL,	'/lms_alihsan_btr/admin/dashboard',	NULL,	NULL,	NULL,	'2026-06-09 04:11:04',	0),
+(26,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-17 07:14:40',	0),
+(27,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-17 07:14:50',	0),
+(28,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/tugas.php',	10,	NULL,	'/lms_alihsan_btr/guru/tugas',	NULL,	NULL,	NULL,	'2026-06-17 07:15:49',	0),
+(29,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-19 10:23:46',	0),
+(30,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-19 10:24:00',	0),
+(31,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-19 10:24:38',	0),
+(32,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/dashboard.php',	13,	NULL,	'/lms_alihsan_btr/guru/dashboard',	NULL,	NULL,	NULL,	'2026-06-19 10:25:00',	0),
+(33,	'EXCEPTION',	NULL,	'Call to undefined function get_kelas_mapel_guru()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/guru/absensi.php',	92,	NULL,	'/lms_alihsan_btr/guru/absensi',	NULL,	NULL,	NULL,	'2026-06-19 10:25:11',	0),
+(34,	'EXCEPTION',	NULL,	'Call to undefined function get_flash()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/kelas_siswa.php',	309,	NULL,	'/lms_alihsan_btr/admin/kelas_siswa',	NULL,	NULL,	NULL,	'2026-06-20 18:14:01',	0),
+(35,	'EXCEPTION',	NULL,	'Call to undefined function get_flash()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/kelas_siswa.php',	309,	NULL,	'/lms_alihsan_btr/admin/kelas_siswa',	NULL,	NULL,	NULL,	'2026-06-20 18:14:20',	0),
+(36,	'EXCEPTION',	NULL,	'Call to undefined function get_flash()',	'/var/www/html/ilham.didzacorp.com/lms_alihsan_btr/admin/kelas_siswa.php',	309,	NULL,	'/lms_alihsan_btr/admin/kelas_siswa',	NULL,	NULL,	NULL,	'2026-06-20 18:15:20',	0);
 
 DROP TABLE IF EXISTS `tahun_ajaran`;
 CREATE TABLE `tahun_ajaran` (
@@ -863,8 +652,8 @@ CREATE TABLE `tahun_ajaran` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `tahun_ajaran` (`id`, `tahun`, `is_active`) VALUES
-(2,	'2025/2026',	1),
-(3,	'2026/2027',	0);
+(2,	'2025/2026',	0),
+(3,	'2026/2027',	1);
 
 DROP TABLE IF EXISTS `tugas`;
 CREATE TABLE `tugas` (
@@ -880,8 +669,6 @@ CREATE TABLE `tugas` (
   CONSTRAINT `fk_tugas_kelasmapel` FOREIGN KEY (`kelas_mapel_id`) REFERENCES `kelas_mapel` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `tugas` (`id`, `kelas_mapel_id`, `judul`, `deskripsi`, `kategori_nilai`, `batas_waktu`, `created_at`) VALUES
-(6,	6,	'111',	'1111',	'NH',	'2026-05-15 19:51:00',	'2026-05-14 19:51:58');
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
@@ -1193,4 +980,4 @@ INSERT INTO `users` (`id`, `username`, `password`, `role_id`, `nama_lengkap`, `n
 (313,	'030',	'$2y$10$w73KQm2WQyF28gOzFOnje.W0rcrg0mctXYQMBZxx43eiYD.kyX4NW',	2,	'DENDI HERDIWAN, S.Pd.Gr.',	NULL,	NULL,	NULL,	1,	'2026-05-14 09:17:19'),
 (314,	'031',	'$2y$10$8hio2NyXSCFRThl.6Jg7mOXhQ2kPFoPjBsu0ln1n3LJGqG3hpDsBC',	2,	'PUTRI RASYA NABILA',	NULL,	NULL,	NULL,	1,	'2026-05-14 09:17:34');
 
--- 2026-05-30 14:34:11
+-- 2026-06-20 13:40:37

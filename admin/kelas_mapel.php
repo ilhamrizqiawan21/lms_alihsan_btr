@@ -272,7 +272,7 @@ $kelas_mapel_data = $stmt_list->get_result();
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                             <a href="?hapus=<?= $km['id'] ?>" class="btn btn-sm btn-danger"
-                               onclick="return confirm('Hapus penugasan ini?')">
+                               data-confirm="Hapus penugasan ini?">
                                 <i class="fas fa-trash-alt"></i> Hapus
                             </a>
                         </td>

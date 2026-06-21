@@ -1,3 +1,8 @@
+/* ============================================
+   NOTIFIKASI CSS + TOAST & CONFIRM MODAL
+   ============================================ */
+
+/* ── Existing: Topbar Notif Button ── */
 .topbar-notif-btn {
     background: rgba(255,255,255,0.1);
     border-radius: 50%;
@@ -36,4 +41,245 @@
     font-size: 0.7rem;
     color: #9ca3af;
     margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════
+   TOAST NOTIFICATION — bottom-right fixed
+   ══════════════════════════════════════════ */
+.toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    pointer-events: none;
+    max-width: 380px;
+    width: auto;
+}
+
+.toast-notification {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.08);
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    width: 100%;
+}
+
+.toast-notification.removing {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+/* Toast variants */
+.toast-notification.success {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+.toast-notification.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.toast-notification.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.toast-notification.info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.toast-notification i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.toast-notification span {
+    flex: 1;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* ══════════════════════════════════════════
+   CONFIRM MODAL — custom modal overlay
+   ══════════════════════════════════════════ */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: overlayFadeIn 0.2s ease;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.confirm-modal {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.75rem 1.5rem 1.25rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.confirm-modal .modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+.confirm-modal .modal-icon.danger {
+    background: #fef2f2;
+    color: #dc2626;
+}
+.confirm-modal .modal-icon.warning {
+    background: #fffbeb;
+    color: #d97706;
+}
+.confirm-modal .modal-icon.info {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.confirm-modal .modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.confirm-modal .modal-message {
+    font-size: 0.875rem;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-modal .modal-actions {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+}
+.confirm-modal .modal-actions button {
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.confirm-modal .modal-actions .btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+.confirm-modal .modal-actions .btn-cancel:hover {
+    background: #e5e7eb;
+}
+.confirm-modal .modal-actions .btn-confirm {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+}
+.confirm-modal .modal-actions .btn-confirm:hover {
+    background: linear-gradient(135deg, #15803d, #166534);
+}
+.confirm-modal .modal-actions .btn-confirm.danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.confirm-modal .modal-actions .btn-confirm.danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Responsive untuk mobile */
+/* ══════════════════════════════════════════
+   FLASH MESSAGE — inline server-rendered
+   ══════════════════════════════════════════ */
+.flash-message {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    margin-bottom: 1.25rem;
+    animation: flashFadeIn 0.3s ease;
+}
+
+@keyframes flashFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.flash-message.flash-success {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+.flash-message.flash-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.flash-message.flash-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.flash-message.flash-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.flash-message i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.flash-message span {
+    flex: 1;
+}
+
+@media (max-width: 480px) {
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        max-width: none;
+    }
+    .confirm-modal {
+        width: 95%;
+        padding: 1.5rem 1.25rem 1rem;
+    }
 }

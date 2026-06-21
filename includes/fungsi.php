@@ -272,65 +272,22 @@ function show_flash(): void {
     $message = htmlspecialchars($_SESSION['flash']['message'], ENT_QUOTES, 'UTF-8');
     unset($_SESSION['flash']);
 
-    $styles = [
-        'success' => ['bg' => '#dcfce7', 'border' => '#16a34a', 'color' => '#166534', 'icon' => 'fa-check-circle'],
-        'error'   => ['bg' => '#fee2e2', 'border' => '#dc2626', 'color' => '#991b1b', 'icon' => 'fa-times-circle'],
-        'warning' => ['bg' => '#fef9c3', 'border' => '#ca8a04', 'color' => '#854d0e', 'icon' => 'fa-exclamation-triangle'],
-        'info'    => ['bg' => '#dbeafe', 'border' => '#2563eb', 'color' => '#1e40af', 'icon' => 'fa-info-circle'],
+    $icons = [
+        'success' => 'fa-check-circle',
+        'error'   => 'fa-times-circle',
+        'warning' => 'fa-exclamation-triangle',
+        'info'    => 'fa-info-circle',
+        'danger'  => 'fa-times-circle',
     ];
 
-    $s = $styles[$type] ?? $styles['info'];
+    $css_type = $type === 'danger' ? 'error' : $type;
+    $icon = $icons[$type] ?? $icons['info'];
 
-    echo "
-    <div id='flash-message' style='
-        background:{$s['bg']};
-        border-left:4px solid {$s['border']};
-        color:{$s['color']};
-        padding:0.85rem 1.25rem;
-        border-radius:0.5rem;
-        margin-bottom:1.25rem;
-        display:flex;
-        align-items:center;
-        gap:0.6rem;
-        font-size:0.9rem;
-        font-weight:500;
-        box-shadow:0 1px 4px rgba(0,0,0,0.06);
-    '>
-        <i class='fas {$s['icon']}'></i>
-        <span>{$message}</span>
-        <button onclick=\"document.getElementById('flash-message').remove()\" style='
-            margin-left:auto;background:none;border:none;
-            cursor:pointer;color:inherit;opacity:0.6;font-size:1rem;
-        '><i class='fas fa-times'></i></button>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var el = document.getElementById('flash-message');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-        setTimeout(function() {
-            var el = document.getElementById('flash-message');
-            if (el) {
-                el.style.transition = 'opacity 0.5s';
-                el.style.opacity = '0';
-                setTimeout(function() { if (el) el.remove(); }, 500);
-            }
-        }, 4000);
-    </script>";
-}
-
-// Alias backward compatibility untuk kode lama yang pakai echo get_flash()
-function get_flash() {
-    if (isset($_SESSION['flash'])) {
-        $flash = $_SESSION['flash'];
-        unset($_SESSION['flash']);
-        $icon = $flash['type'] === 'success' ? 'check-circle' : 
-               ($flash['type'] === 'warning' ? 'exclamation-triangle' : 'times-circle');
-        return '<div class="alert alert-' . e($flash['type']) . '">
-                    <i class="fas fa-' . $icon . '"></i> ' . e($flash['message']) . '
-                </div>';
-    }
-    return '';
+    echo '
+    <div class="flash-message flash-' . e($css_type) . '">
+        <i class="fas ' . $icon . '"></i>
+        <span>' . $message . '</span>
+    </div>';
 }
 
 // ---- NOTIFIKASI ----
@@ -564,18 +521,23 @@ function get_tahun_ajaran_id_aktif($conn) {
 /**
  * Get student's overall GPA for the active academic year.
  */
-function get_student_gpa($conn, $student_id, $tahun_ajaran_id = null) {
+function get_student_gpa($conn, $student_id, $tahun_ajaran_id = null, $semester = null) {
     if (!$tahun_ajaran_id) {
         $tahun_ajaran_id = get_tahun_ajaran_id_aktif($conn);
+    }
+    if (!$semester) {
+        $semester = get_semester_aktif($conn);
     }
     if (!$tahun_ajaran_id) return 0;
 
     $stmt = $conn->prepare(
-        "SELECT AVG(nilai) as gpa 
-         FROM nilai 
-         WHERE siswa_id = ? AND tahun_ajaran_id = ?"
+        "SELECT AVG(na.rata_akhir) as gpa 
+         FROM nilai_akhir na
+         WHERE na.siswa_id = ? AND na.tahun_ajaran_id = ? AND na.semester = ?
+         AND na.rata_akhir IS NOT NULL"
     );
-    $stmt->bind_param("ii", $student_id, $tahun_ajaran_id);
+    if (!$stmt) return 0;
+    $stmt->bind_param("iis", $student_id, $tahun_ajaran_id, $semester);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     return round($result['gpa'] ?? 0, 2);
@@ -660,21 +622,33 @@ function get_student_assignment_rate($conn, $student_id, $tahun_ajaran_id = null
 /**
  * Get student's subject-wise average scores for the active academic year.
  */
-function get_student_subject_scores($conn, $student_id, $tahun_ajaran_id = null) {
+function get_student_subject_scores($conn, $student_id, $tahun_ajaran_id = null, $semester = null) {
     if (!$tahun_ajaran_id) {
         $tahun_ajaran_id = get_tahun_ajaran_id_aktif($conn);
+    }
+    if (!$semester) {
+        $semester = get_semester_aktif($conn);
     }
     if (!$tahun_ajaran_id) return [];
 
     $stmt = $conn->prepare(
-        "SELECT mp.nama_mapel, AVG(n.nilai) as avg_score, COUNT(n.id) as num_grades 
-         FROM nilai n 
-         JOIN mata_pelajaran mp ON n.mapel_id = mp.id 
-         WHERE n.siswa_id = ? AND n.tahun_ajaran_id = ? 
-         GROUP BY n.mapel_id, mp.nama_mapel 
+        "SELECT mp.nama_mapel, na.rata_akhir as avg_score,
+                (CASE WHEN na.sum1 IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sum2 IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sum3 IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sum4 IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sts IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sas IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN na.sat IS NOT NULL THEN 1 ELSE 0 END) as num_grades
+         FROM nilai_akhir na
+         JOIN kelas_mapel km ON na.kelas_mapel_id = km.id
+         JOIN mata_pelajaran mp ON km.mapel_id = mp.id
+         WHERE na.siswa_id = ? AND na.tahun_ajaran_id = ? AND na.semester = ?
+         AND na.rata_akhir IS NOT NULL
          ORDER BY mp.nama_mapel ASC"
     );
-    $stmt->bind_param("ii", $student_id, $tahun_ajaran_id);
+    if (!$stmt) return [];
+    $stmt->bind_param("iis", $student_id, $tahun_ajaran_id, $semester);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -699,13 +673,16 @@ function get_student_grade_trend($conn, $student_id, $tahun_ajaran_id = null, $l
     if (!$tahun_ajaran_id) return [];
 
     $stmt = $conn->prepare(
-        "SELECT mp.nama_mapel, n.nilai, n.created_at 
-         FROM nilai n 
-         JOIN mata_pelajaran mp ON n.mapel_id = mp.id 
-         WHERE n.siswa_id = ? AND n.tahun_ajaran_id = ? 
-         ORDER BY n.created_at DESC 
+        "SELECT mp.nama_mapel, pt.nilai, COALESCE(pt.tanggal_kumpul, t.created_at) as grade_date
+         FROM pengumpulan_tugas pt
+         JOIN tugas t ON pt.tugas_id = t.id
+         JOIN kelas_mapel km ON t.kelas_mapel_id = km.id
+         JOIN mata_pelajaran mp ON km.mapel_id = mp.id
+         WHERE pt.siswa_id = ? AND km.tahun_ajaran_id = ? AND pt.nilai IS NOT NULL
+         ORDER BY grade_date DESC
          LIMIT ?"
     );
+    if (!$stmt) return [];
     $stmt->bind_param("iii", $student_id, $tahun_ajaran_id, $limit);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -715,7 +692,7 @@ function get_student_grade_trend($conn, $student_id, $tahun_ajaran_id = null, $l
         $grades[] = [
             'subject' => $row['nama_mapel'],
             'score' => (float)$row['nilai'],
-            'date' => $row['created_at']
+            'date' => $row['grade_date']
         ];
     }
     return array_reverse($grades);
@@ -755,34 +732,36 @@ function get_user_calendar_events($conn, $user_id, $year, $month) {
  * Save or update a calendar event for a user.
  */
 function save_calendar_event($conn, $user_id, $event_date, $title, $description, $event_id = null, $is_holiday = 0, $scope = 'user') {
+    // Store last error globally for debug
+    $GLOBALS['__cal_error'] = '';
+
     if (!$event_date || !$title) {
+        $GLOBALS['__cal_error'] = 'Empty date or title';
         return false;
     }
     if ($event_id) {
-        $stmt = $conn->prepare(
-            "UPDATE calendar_events 
-             SET title = ?, description = ?, event_date = ?, is_holiday = ?, scope = ?, updated_at = CURRENT_TIMESTAMP 
-             WHERE id = ?"
-        );
-        if (!$stmt) return false;
+        $sql = "UPDATE calendar_events SET title=?, description=?, event_date=?, is_holiday=?, scope=?, updated_at=CURRENT_TIMESTAMP WHERE id=?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) { $GLOBALS['__cal_error'] = 'Prepare UPDATE: '.$conn->error; return false; }
         $stmt->bind_param("sssisi", $title, $description, $event_date, $is_holiday, $scope, $event_id);
     } else {
-        // If scope is school, user_id should be NULL
         if ($scope === 'school') {
-            $stmt = $conn->prepare(
-                "INSERT INTO calendar_events (user_id, title, description, event_date, is_holiday, scope) VALUES (NULL, ?, ?, ?, ?, ?)"
-            );
-            if (!$stmt) return false;
+            $sql = "INSERT INTO calendar_events (user_id,title,description,event_date,is_holiday,scope) VALUES (NULL,?,?,?,?,?)";
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) { $GLOBALS['__cal_error'] = 'Prepare school INSERT: '.$conn->error; return false; }
             $stmt->bind_param("sssis", $title, $description, $event_date, $is_holiday, $scope);
         } else {
-            $stmt = $conn->prepare(
-                "INSERT INTO calendar_events (user_id, title, description, event_date, is_holiday, scope) VALUES (?, ?, ?, ?, ?, ?)"
-            );
-            if (!$stmt) return false;
+            $sql = "INSERT INTO calendar_events (user_id,title,description,event_date,is_holiday,scope) VALUES (?,?,?,?,?,?)";
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) { $GLOBALS['__cal_error'] = 'Prepare user INSERT: '.$conn->error; return false; }
             $stmt->bind_param("isssis", $user_id, $title, $description, $event_date, $is_holiday, $scope);
         }
     }
-    return $stmt->execute();
+    $ok = $stmt->execute();
+    if (!$ok) {
+        $GLOBALS['__cal_error'] = 'Execute: '.$stmt->error;
+    }
+    return $ok;
 }
 
 /**
@@ -796,3 +775,21 @@ function delete_calendar_event($conn, $user_id, $event_id) {
     return $stmt->execute();
 }
 
+/**
+ * Mengambil daftar kelas dan mata pelajaran yang diampu oleh guru tertentu
+ * pada tahun ajaran dan semester yang aktif.
+ */
+function get_kelas_mapel_guru($conn, $guru_id, $tahun_ajaran, $semester) {
+    $stmt = $conn->prepare(
+        "SELECT km.*, k.nama_kelas, mp.nama_mapel 
+         FROM kelas_mapel km
+         JOIN kelas k ON km.kelas_id = k.id
+         JOIN mata_pelajaran mp ON km.mapel_id = mp.id
+         JOIN tahun_ajaran ta ON km.tahun_ajaran_id = ta.id
+         WHERE km.guru_id = ? AND ta.tahun = ? AND km.semester = ?"
+    );
+    if (!$stmt) return false;
+    $stmt->bind_param("iss", $guru_id, $tahun_ajaran, $semester);
+    $stmt->execute();
+    return $stmt->get_result();
+}

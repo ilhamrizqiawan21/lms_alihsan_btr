@@ -469,8 +469,9 @@ function togglePin(widgetKey, btn) {
     });
 }
 
-function resetDashboardWidgets(btn) {
-    if (!confirm('Reset dashboard to default layout?')) return;
+async function resetDashboardWidgets(btn) {
+    var ok = await confirmModal('Reset dashboard to default layout?');
+    if (!ok) return;
     
     if (btn) {
         btn.classList.add('loading');

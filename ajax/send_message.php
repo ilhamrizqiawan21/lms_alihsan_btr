@@ -19,26 +19,27 @@ $role_id = $_SESSION['role_id'];
 
 // Validasi akses
 if ($role_id == 2) {
-    $check = mysqli_query($conn, "SELECT id FROM kelas_mapel WHERE id=$kelas_mapel_id AND guru_id=$user_id");
+    $stmt = $conn->prepare("SELECT id FROM kelas_mapel WHERE id = ? AND guru_id = ?");
+    $stmt->bind_param("ii", $kelas_mapel_id, $user_id);
+    $stmt->execute();
+    $check = $stmt->get_result();
     $penerima_role = 3; // siswa
 } elseif ($role_id == 3) {
-    $siswa = mysqli_fetch_assoc(mysqli_query($conn, "SELECT kelas_id FROM siswa WHERE user_id=$user_id"));
-    $kelas_id = $siswa['kelas_id'];
-    $check = mysqli_query($conn, "SELECT id, guru_id FROM kelas_mapel WHERE id=$kelas_mapel_id AND kelas_id=$kelas_id");
-    if ($check && mysqli_num_rows($check) > 0) {
-        $guru_id = mysqli_fetch_assoc($check)['guru_id'];
-        $penerima_id = $guru_id;
-        $penerima_role = 2;
-    } else {
-        echo json_encode(['status'=>'error', 'message'=>'Unauthorized']);
-        exit;
-    }
+    $stmt_siswa = $conn->prepare("SELECT kelas_id FROM siswa WHERE user_id = ?");
+    $stmt_siswa->bind_param("i", $user_id);
+    $stmt_siswa->execute();
+    $kelas_id = $stmt_siswa->get_result()->fetch_assoc()['kelas_id'] ?? 0;
+
+    $stmt_km = $conn->prepare("SELECT id, guru_id FROM kelas_mapel WHERE id = ? AND kelas_id = ?");
+    $stmt_km->bind_param("ii", $kelas_mapel_id, $kelas_id);
+    $stmt_km->execute();
+    $check = $stmt_km->get_result();
 } else {
     echo json_encode(['status'=>'error', 'message'=>'Unauthorized']);
     exit;
 }
 
-if (!$check || mysqli_num_rows($check) == 0) {
+if (!$check || $check->num_rows == 0) {
     echo json_encode(['status'=>'error', 'message'=>'Unauthorized']);
     exit;
 }

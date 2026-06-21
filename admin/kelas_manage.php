@@ -114,15 +114,15 @@ if ($selected_kelas) {
     previewBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const selected = Array.from(document.querySelectorAll('.studentCheckbox:checked')).map(cb=>cb.value);
-        if (!selected.length) { alert('Pilih minimal 1 siswa'); return; }
+        if (!selected.length) { showToast('Pilih minimal 1 siswa','warning'); return; }
         const action = bulkActionSelect.value;
-        if (!action) { alert('Pilih aksi bulk'); return; }
+        if (!action) { showToast('Pilih aksi bulk','warning'); return; }
         const payload = new FormData();
         payload.append('action', action);
         selected.forEach(id=>payload.append('student_ids[]', id));
         if (action === 'move') {
             const target = targetKelas.value;
-            if (!target) { alert('Pilih kelas tujuan'); return; }
+            if (!target) { showToast('Pilih kelas tujuan','warning'); return; }
             payload.append('target_kelas', target);
         }
         payload.append('preview', 1);
@@ -138,7 +138,7 @@ if ($selected_kelas) {
 
     commitBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        if (!confirm('Yakin ingin mengeksekusi aksi ini? Tindakan ini tidak bisa dibatalkan (kecuali data backup).')) return;
+        if (!await confirmModal('Yakin ingin mengeksekusi aksi ini? Tindakan ini tidak bisa dibatalkan (kecuali data backup).')) return;
         const selected = Array.from(document.querySelectorAll('.studentCheckbox:checked')).map(cb=>cb.value);
         const action = commitBtn.dataset.action;
         const payload = new FormData();

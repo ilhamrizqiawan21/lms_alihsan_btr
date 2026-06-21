@@ -248,10 +248,12 @@ $users = $stmt->get_result();
                         <td><?= htmlspecialchars($u['nip_nis'] ?: '-') ?></td>
                         <td><?= $u['is_active'] ? '<span class="badge-aktif"><i class="fas fa-check-circle"></i> Aktif</span>' : '<span class="badge-tidak-aktif"><i class="fas fa-ban"></i> Nonaktif</span>' ?></td>
                         <td class="action-buttons">
-                            <button class="btn btn-sm btn-success" onclick="openEditModal(<?= $u['id'] ?>, '<?= htmlspecialchars($u['nama_lengkap']) ?>', <?= $u['role_id'] ?>, '<?= htmlspecialchars($u['nip_nis']) ?>')"><i class="fas fa-edit"></i> Edit</button>
-                            <a href="?reset_pass=<?= $u['id'] ?>" class="btn btn-sm btn-primary" onclick="return confirm('Reset password user <?= htmlspecialchars($u['username']) ?> menjadi 123456?')"><i class="fas fa-key"></i> Reset</a>
-                            <a href="?toggle_status=<?= $u['id'] ?>" class="btn btn-sm btn-warning" onclick="return confirm('Ubah status user <?= htmlspecialchars($u['username']) ?>?')"><i class="fas fa-power-off"></i> <?= $u['is_active'] ? 'Nonaktifkan' : 'Aktifkan' ?></a>
-                            <a href="?hapus_user=<?= $u['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus user <?= htmlspecialchars($u['username']) ?>?')"><i class="fas fa-trash-alt"></i> Hapus</a>
+                            <button class="btn btn-sm btn-success" onclick='openEditModal(<?= $u['id'] ?>, <?= json_encode($u['nama_lengkap']) ?>, <?= $u['role_id'] ?>, <?= json_encode($u['nip_nis']) ?>)'>
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <a href="?reset_pass=<?= $u['id'] ?>" class="btn btn-sm btn-primary" onclick="var _href=this.href;event.preventDefault();confirmModal('Reset password user <?= htmlspecialchars($u['username']) ?> menjadi 123456?').then(r=>r&&(window.location=_href))"><i class="fas fa-key"></i> Reset</a>
+                            <a href="?toggle_status=<?= $u['id'] ?>" class="btn btn-sm btn-warning" onclick="var _href=this.href;event.preventDefault();confirmModal('Ubah status user <?= htmlspecialchars($u['username']) ?>?').then(r=>r&&(window.location=_href))"><i class="fas fa-power-off"></i> <?= $u['is_active'] ? 'Nonaktifkan' : 'Aktifkan' ?></a>
+                            <a href="?hapus_user=<?= $u['id'] ?>" class="btn btn-sm btn-danger" onclick="var _href=this.href;event.preventDefault();confirmModal('Hapus user <?= htmlspecialchars($u['username']) ?>?').then(r=>r&&(window.location=_href))"><i class="fas fa-trash-alt"></i> Hapus</a>
                         </td>
                     </tr>
                     <?php endwhile; ?>

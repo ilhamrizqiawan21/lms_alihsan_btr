@@ -8,6 +8,11 @@ $semester_aktif = get_semester_aktif($conn);
 
 // Ambil daftar mapel yang diampu guru
 $mapel_list = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
+
+if (!$mapel_list || $mapel_list->num_rows == 0) {
+    set_flash('warning', 'Anda belum memiliki penugasan kelas/mapel pada tahun/semester ini.');
+}
+
 $distinct_mapel = [];
 if ($mapel_list) {
     $mapel_list->data_seek(0);
@@ -145,16 +150,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_nilai'])) {
             $stmt_user = $conn->prepare("SELECT user_id FROM siswa WHERE id = ?");
             $stmt_user->bind_param("i", $siswa_id);
             $stmt_user->execute();
-            $user_id_siswa = $stmt_user->get_result()->fetch_assoc()['user_id'];
-            tambah_notifikasi($conn, $user_id_siswa, 'nilai_baru', 'Nilai Tugas', "Anda mendapat nilai $nilai untuk tugas '$judul_tugas'.", "../siswa/tugas_saya.php");
-
-            // Di dalam foreach ($_POST['nilai'] as $siswa_id => $nilai) setelah update nilai
-            // Dapatkan user_id siswa
-            $stmt_user = $conn->prepare("SELECT user_id FROM siswa WHERE id = ?");
-            $stmt_user->bind_param("i", $siswa_id);
-            $stmt_user->execute();
             $siswa_data = $stmt_user->get_result()->fetch_assoc();
+
             if ($siswa_data) {
+                // Ambil judul tugas untuk pesan notifikasi
+                $stmt_tj = $conn->prepare("SELECT judul FROM tugas WHERE id = ?");
+                $stmt_tj->bind_param("i", $tugas_id);
+                $stmt_tj->execute();
+                $judul_tugas = $stmt_tj->get_result()->fetch_assoc()['judul'] ?? 'Tugas';
+
                 // Notifikasi nilai baru
                 tambah_notifikasi($conn, $siswa_data['user_id'], 'nilai_baru', 'Nilai Tugas', "Anda mendapat nilai $nilai untuk tugas '$judul_tugas'.", "../siswa/tugas_saya.php");
                 
@@ -300,7 +304,7 @@ $tugas_list = $stmt->get_result();
                     <?php endif; ?>
                 </div>
                 <a href="?hapus_tugas=<?= $t['id'] ?>" class="btn btn-sm btn-danger"
-                   onclick="return confirm('Hapus tugas ini beserta semua pengumpulan siswa?')">
+                   data-confirm="Hapus tugas ini beserta semua pengumpulan siswa?">
                     <i class="fas fa-trash"></i> Hapus
                 </a>
             </div>
@@ -394,7 +398,7 @@ document.addEventListener('click', function(e) {
                     });
                     fileCol += '</div>';
                 } else if (s.teks_jawaban) {
-                    fileCol = `<button type="button" class="btn btn-sm btn-outline" onclick="alert(this.dataset.jawaban)" data-jawaban="${escapeHtml(s.teks_jawaban)}">Lihat Jawaban</button>`;
+                    fileCol = `<button type="button" class="btn btn-sm btn-outline" onclick="showToast(this.dataset.jawaban,'info')" data-jawaban="${escapeHtml(s.teks_jawaban)}">Lihat Jawaban</button>`;
                 }
 
                 html += `<tr>

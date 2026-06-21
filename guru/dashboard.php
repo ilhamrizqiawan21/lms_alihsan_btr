@@ -13,6 +13,11 @@ $bulan_ini      = date('Y-m');
 $kelas_mapel_list  = get_kelas_mapel_guru($conn, $guru_id, $tahun_aktif, $semester_aktif);
 $total_kelas_mapel = $kelas_mapel_list ? $kelas_mapel_list->num_rows : 0;
 
+// ========== HANDLER ERROR: BELUM ADA PENUGASAN ==========
+if ($total_kelas_mapel == 0) {
+    set_flash('warning', '<strong>Peringatan!</strong> Anda belum memiliki penugasan (Kelas & Mata Pelajaran) pada semester ini. Silakan hubungi Administrator untuk pengaturan lebih lanjut.');
+}
+
 // ========== TOTAL SISWA DIAJAR (prepared statement) ==========
 $stmt_ta = $conn->prepare("SELECT id FROM tahun_ajaran WHERE tahun=? AND is_active=1 LIMIT 1");
 $stmt_ta->bind_param("s", $tahun_aktif);

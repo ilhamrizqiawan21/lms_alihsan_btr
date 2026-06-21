@@ -41,6 +41,8 @@ switch ($warna_tema) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title><?= $title ?? 'LMS MTs Al-Ihsan' ?></title>
     <link rel="icon" href="<?= $base_url ?>assets/images/favicon.ico">
+    <!-- Bootstrap 5 Core for Layouting & Components -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="<?= $base_url ?>style.css">
         <link rel="stylesheet" href="<?= $base_url ?>assets/css/notifikasi.css">
@@ -284,7 +286,7 @@ function loadNotifikasi() {
             } else {
                 let html = '';
                 data.notifikasi.forEach(notif => {
-                    html += `<div class="notif-item ${notif.is_read ? '' : 'unread'}" data-id="${notif.id}">
+                    html += `<div class="notif-item ${notif.is_read ? '' : 'unread'}" data-id="${notif.id}" data-link="${escapeHtml(notif.link || '')}">
                                 <div class="notif-title">${escapeHtml(notif.judul)}</div>
                                 <div class="notif-time">${notif.created_at_fmt}</div>
                                 <div class="notif-pesan" style="font-size:0.75rem; color:#4b5563; margin-top:4px;">${escapeHtml(notif.pesan)}</div>

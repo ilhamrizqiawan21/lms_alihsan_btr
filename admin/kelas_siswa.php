@@ -306,7 +306,7 @@ $siswa = $conn->query($query_siswa);
     <h2 class="page-title"><i class="fas fa-school"></i> Kelas & Siswa</h2>
     <p class="page-subtitle">Kelola data kelas dan siswa, import dari Excel, reset password siswa, edit data siswa.</p>
 </div>
-<?= get_flash(); ?>
+<?php show_flash(); ?>
 
 <div class="form-row">
     <div class="form-container">
@@ -353,9 +353,9 @@ $siswa = $conn->query($query_siswa);
                     <td><?= e($k['tingkat']) ?></td>
                     <td>
                         <?php if ($k['tingkat'] === 'IX'): ?>
-                            <a href="?lulus_kelas=<?= $k['id'] ?>" class="btn-sm btn-sm-success" onclick="return confirm('Luluskan semua siswa aktif di kelas <?= e($k['nama_kelas']) ?>?')"><i class="fas fa-graduation-cap"></i> Luluskan</a>
+                            <a href="?lulus_kelas=<?= $k['id'] ?>" class="btn-sm btn-sm-success" onclick="var _href=this.href;event.preventDefault();confirmModal('Luluskan semua siswa aktif di kelas <?= e($k['nama_kelas']) ?>?').then(r=>r&&(window.location=_href))"><i class="fas fa-graduation-cap"></i> Luluskan</a>
                         <?php endif; ?>
-                        <a href="?hapus_kelas=<?= $k['id'] ?>" class="btn-sm btn-sm-danger" onclick="return confirm('Hapus kelas? Pastikan tidak ada siswa.')"><i class="fas fa-trash"></i> Hapus</a>
+                        <a href="?hapus_kelas=<?= $k['id'] ?>" class="btn-sm btn-sm-danger" data-confirm="Hapus kelas? Pastikan tidak ada siswa."><i class="fas fa-trash"></i> Hapus</a>
                     </td>
                 </tr>
             <?php endwhile; ?></tbody>
@@ -423,8 +423,8 @@ $siswa = $conn->query($query_siswa);
                     <td style="text-align:center"><?= $status_badge ?></td>
                     <td class="action-buttons">
                         <button class="btn-sm btn-sm-success" onclick="openEditSiswaModal(<?= $s['id'] ?>, '<?= e($s['nama_lengkap']) ?>', <?= (int)$s['kelas_id'] ?>, '<?= $s['jenis_kelamin'] ?>', <?= $tinggal_kelas ?>)"><i class="fas fa-edit"></i> Edit</button>
-                        <a href="?reset_pass_siswa=<?= $s['id'] ?>" class="btn-sm btn-sm-warning" onclick="return confirm('Reset password siswa menjadi 123456?')"><i class="fas fa-key"></i> Reset</a>
-                        <a href="?hapus_siswa=<?= $s['id'] ?>" class="btn-sm btn-sm-danger" onclick="return confirm('Hapus siswa?')"><i class="fas fa-trash"></i> Hapus</a>
+                        <a href="?reset_pass_siswa=<?= $s['id'] ?>" class="btn-sm btn-sm-warning" data-confirm="Reset password siswa menjadi 123456?"><i class="fas fa-key"></i> Reset</a>
+                        <a href="?hapus_siswa=<?= $s['id'] ?>" class="btn-sm btn-sm-danger" data-confirm="Hapus siswa?"><i class="fas fa-trash"></i> Hapus</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -494,16 +494,16 @@ function getSelectedIds(){
 }
 async function performBulkPreview(){
     var action = document.getElementById('bulk_action').value;
-    if (!action) { alert('Pilih aksi massal'); return; }
+    if (!action) { showToast('Pilih aksi massal','warning'); return; }
     var ids = getSelectedIds();
-    if (ids.length === 0) { alert('Pilih setidaknya satu siswa'); return; }
+    if (ids.length === 0) { showToast('Pilih setidaknya satu siswa','warning'); return; }
     var fd = new FormData();
     fd.append('action', action);
     ids.forEach(function(id){ fd.append('student_ids[]', id); });
     fd.append('preview', '1');
     if (action === 'move'){
         var target = document.getElementById('bulk_target_kelas').value;
-        if (!target || target === '0') { alert('Pilih kelas tujuan'); return; }
+        if (!target || target === '0') { showToast('Pilih kelas tujuan','warning'); return; }
         fd.append('target_kelas', target);
     }
     var resp = await fetch('ajax/bulk_class_actions.php', { method: 'POST', body: fd });
@@ -513,31 +513,31 @@ async function performBulkPreview(){
         area.innerHTML = json.preview_html || json.message || '';
         area.style.display = 'block';
     } else {
-        alert(json.message || 'Preview gagal');
+        showToast(json.message || 'Preview gagal','error');
     }
 }
 async function performBulkExecute(){
-    if (!confirm('Yakin ingin mengeksekusi aksi massal?')) return;
+    if (!await confirmModal('Yakin ingin mengeksekusi aksi massal?')) return;
     var action = document.getElementById('bulk_action').value;
-    if (!action) { alert('Pilih aksi massal'); return; }
+    if (!action) { showToast('Pilih aksi massal','warning'); return; }
     var ids = getSelectedIds();
-    if (ids.length === 0) { alert('Pilih setidaknya satu siswa'); return; }
+    if (ids.length === 0) { showToast('Pilih setidaknya satu siswa','warning'); return; }
     var fd = new FormData();
     fd.append('action', action);
     ids.forEach(function(id){ fd.append('student_ids[]', id); });
     fd.append('preview', '0');
     if (action === 'move'){
         var target = document.getElementById('bulk_target_kelas').value;
-        if (!target || target === '0') { alert('Pilih kelas tujuan'); return; }
+        if (!target || target === '0') { showToast('Pilih kelas tujuan','warning'); return; }
         fd.append('target_kelas', target);
     }
     var resp = await fetch('ajax/bulk_class_actions.php', { method: 'POST', body: fd });
     var json = await resp.json();
     if (json.success){
-        alert(json.message || 'Sukses');
+        showToast(json.message || 'Sukses','success');
         window.location.reload();
     } else {
-        alert(json.message || 'Eksekusi gagal');
+        showToast(json.message || 'Eksekusi gagal','error');
     }
 }
 </script>

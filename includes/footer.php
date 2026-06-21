@@ -72,21 +72,22 @@ body {
     </div>
 </footer>
 
-<!-- ========== SCRIPT GLOBAL UNTUK TOAST ========== -->
+<!-- ========== TOAST CONTAINER ========== -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ========== SCRIPT GLOBAL ========== -->
 <script>
 (function() {
-    // Toast notifikasi sederhana
-    window.showToast = function(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        let icon = 'check-circle';
-        if (type === 'error') icon = 'times-circle';
-        if (type === 'warning') icon = 'exclamation-triangle';
-        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${escapeHtml(message)}</span>`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-    };
+    // ── Toast container ──
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
 
+    // ── Escape HTML helper ──
     function escapeHtml(str) {
         return String(str).replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -96,12 +97,117 @@ body {
         });
     }
 
-    // Loading state hanya untuk form yang bukan filter/pencarian
-    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(form => {
+    // ── Toast ──
+    window.showToast = function(message, type) {
+        if (!type) type = 'success';
+        var iconMap = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        var icon = iconMap[type] || 'fa-info-circle';
+
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification ' + type;
+        toast.innerHTML = '<i class="fas ' + icon + '"></i> <span>' + escapeHtml(message) + '</span>';
+        container.appendChild(toast);
+
+        setTimeout(function() {
+            toast.classList.add('removing');
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 350);
+        }, 4000);
+    };
+
+    // ── Confirm Modal ──
+    window.confirmModal = function(message, options) {
+        options = options || {};
+        var title = options.title || 'Konfirmasi';
+        var confirmText = options.confirmText || 'Ya, lanjutkan';
+        var cancelText = options.cancelText || 'Batal';
+        var isDanger = options.danger === true;
+        var iconType = isDanger ? 'danger' : (options.iconType || 'warning');
+        var iconMap = {
+            danger: 'fa-exclamation-triangle',
+            warning: 'fa-question-circle',
+            info: 'fa-info-circle'
+        };
+        var icon = iconMap[iconType] || 'fa-question-circle';
+        var customClass = isDanger ? 'danger' : '';
+
+        return new Promise(function(resolve) {
+            // Overlay
+            var overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.innerHTML =
+                '<div class="confirm-modal">' +
+                    '<div class="modal-icon ' + iconType + '"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="modal-title">' + escapeHtml(title) + '</div>' +
+                    '<div class="modal-message">' + escapeHtml(message) + '</div>' +
+                    '<div class="modal-actions">' +
+                        '<button class="btn-cancel" id="confirmCancel">' + escapeHtml(cancelText) + '</button>' +
+                        '<button class="btn-confirm ' + customClass + '" id="confirmOk">' + escapeHtml(confirmText) + '</button>' +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(overlay);
+
+            function cleanup(result) {
+                if (overlay.parentNode) overlay.remove();
+                resolve(result);
+            }
+
+            document.getElementById('confirmOk').addEventListener('click', function() {
+                cleanup(true);
+            });
+            document.getElementById('confirmCancel').addEventListener('click', function() {
+                cleanup(false);
+            });
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) cleanup(false);
+            });
+            // Keyboard: Escape = batal
+            document.addEventListener('keydown', function handler(e) {
+                if (e.key === 'Escape') {
+                    document.removeEventListener('keydown', handler);
+                    cleanup(false);
+                }
+            });
+        });
+    };
+
+    // ── Data-confirm handler ──
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('[data-confirm]');
+        if (!el) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var msg = el.getAttribute('data-confirm');
+        var href = el.getAttribute('href');
+        var formAction = el.getAttribute('data-action');
+        var method = el.getAttribute('data-method') || 'get';
+        confirmModal(msg, { danger: el.classList.contains('btn-danger') }).then(function(ok) {
+            if (!ok) return;
+            if (formAction) {
+                var form = document.createElement('form');
+                form.method = method === 'post' ? 'POST' : 'GET';
+                form.action = formAction;
+                document.body.appendChild(form);
+                form.submit();
+            } else if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+
+    // ── Loading state pada form POST ──
+    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
+            var submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
-                setTimeout(() => {
+                setTimeout(function() {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
                 }, 100);
